@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Расценки
+{% endblock %}
+
+{% block head %}<style>
+
+</style>{% endblock %}
+
+{% block body %}
+<div class="container-lg p-5 color-mid text-white">
+  <div class="row row-cols-1 row-cols-md-3 mb-3 text-center text-dark justify-content-center">
+    <div class="col">
+      <div class="card mb-4 rounded-3">
+        <div class="card-header py-3">
+          <h4 class="my-0">Разовый</h4>
+        </div>
+        <div class="card-body">
+          <h1 class="card-title pricing-card-title">250₽<small class="text-muted fw-light">/документ</small></h1>
+          <ul class="list-unstyled mt-3 mb-4">
+            <li>Создание пакета документов</li>
+            <li>Плата за каждый документ</li>
+            <li>Хранение результатов до 15-и дней</li>
+            <li>Поддержка производителя</li>
+          </ul>
+          <a href="{% url 'main:index' %}#sign-in" class="w-100 btn btn-lg btn-outline-primary">Войти</a>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <div class="card mb-4 rounded-3 shadow-sm border-primary">
+        <div class="card-header py-3 text-bg-primary">
+          <h4 class="my-0 fw-normal">Подписка</h4>
+        </div>
+        <div class="card-body">
+          <h1 class="card-title pricing-card-title">45 000₽<small class="text-muted fw-light">/мес</small></h1>
+          <ul class="list-unstyled mt-3 mb-4">
+            <li>Создание пакета документов</li>
+            <li>Снятие платы за каждый документ</li>
+            <li>Безлимитное хранение результатов</li>
+            <li>Поддержка производителя</li>
+          </ul>
+          <a href="{% url 'main:about' %}" class="w-100 btn btn-lg btn-primary">Связаться с нами</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

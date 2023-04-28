@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Главная страница
+{% endblock %}
+
+{% block head %}<style>
+
+</style>{% endblock %}
+
+{% block body %}
+<div class="container-lg color-mid">
+  <div class="px-4 py-5 text-center border-bottom text-white">
+    <h3 class="display-4 fw-bold">Быстрые и бесплатные<br>юридические документы</h3>
+    <div class="col-lg-6 mx-auto">
+      <p class="lead mb-4">Мы предлагаем услугу роботизированной юридической помощи. Если Вам нужно составить документ, и Вы хотите сделать это быстро и бесплатно, то наша программа Вас выручит!</p>
+      <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
+        {% if user.is_authenticated %}
+          <a href="{% url 'main:profile' %}" class="btn btn-primary btn-lg px-4 me-sm-3">Начать работу</a>
+        {% else %}
+          <a href="{% url 'main:index' %}#sign-in" class="btn btn-outline-primary btn-lg px-4">Войти</a>
+        {% endif %}
+      </div>
+    </div>
+    <div class="overflow-hidden" style="max-height: 30vh;">
+      <div class="container-md">
+        <img src="https://i.imgur.com/ot7Vg1n.png" class="img-fluid border rounded-3 shadow-lg mb-4" alt="Example image" width="700" height="500" loading="lazy">
+      </div>
+    </div>
+  </div>
+  <div class="container px-4 py-5 text-white">
+    <h2 class="pb-2 border-bottom">Наши особенности</h2>
+    <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+      <div class="feature col">
+        <h3 class="fs-2">
+          <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+            {% include 'svg/complex.svg' %}
+          </div>
+          Комплексность
+        </h3>
+        <p>По запрошенным данным алгоритм соберёт весь необходимый комплект документов. Поэтому единственное, что Вам останется, так это распечатать их и отнести в суд.</p>
+      </div>
+      <div class="feature col">
+        <h3 class="fs-2">
+          <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+            {% include 'svg/trust.svg' %}
+          </div>
+          Надёжность
+        </h3>
+        <p>Алгоритм налажен и проверяется нами ежедневно. Документы сделаны по лучшим образцам и по современным стандартам, поэтому их примут любые судьи.</p>
+      </div>
+      <div class="feature col">
+        <h3 class="fs-2">
+          <div class="feature-icon d-inline-flex align-items-center justify-content-center fs-2 mb-3">
+            {% include 'svg/payment.svg' %}
+          </div>
+          Затратность
+        </h3>
+        <p>Мы позиционируем себя, как юридическую помощь. Все затраты при использовании нашего ПО Вы сможете вернуть непосредственно в судебном процессе.</p>
+      </div>
+    </div>
+  </div>
+  <div id="sign-in" class="container col-xl-10 col-xxl-8 px-4 py-5 text-white">
+    <div class="row align-items-center g-lg-5 py-5">
+      <div class="col-lg-7 text-center text-lg-start">
+        <h3 class="display-4 fw-bold lh-1 mb-3">Начните работу с документами прямо сейчас!</h3>
+        <p class="col-lg-10 fs-4">Если Вы уже являетесь партнёром нашей фирмы, то, войдя под своим ИНН и личным паролем, Вы сразу перейдёте на страницу создания документов.</p>
+        <small class="col-lg-10">В ином случае, Вы можете оставить заявку на партнёрство <a href="#" class="text-decoration-none">здесь</a>.</small>
+      </div>
+      <div class="col-md-10 mx-auto col-lg-5">
+        {% if user.is_authenticated %}
+          <div class="p-4 p-md-5 border rounded-3 bg-light">
+            <h2 class="mb-1">Всё готово!</h2>
+            <p class="mb-3 text-muted">Вы уже вошли в аккаунт, поэтому остаётся только начать.</p>
+            <a href="{% url 'main:profile' %}" class="w-100 btn btn-lg btn-primary">Начать работу</a>
+            <hr class="my-4">
+            <small class="text-muted">Нажимая на кнопку <i>Начать работу</i>, Вы соглашаетесь с <a href="#">условиями пользования</a></small>
+          </div>
+        {% else %}
+          <form class="p-4 p-md-5 border rounded-3 bg-light text-dark">
+            <div class="form-floating mb-3">
+              <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
+              <label for="floatingInput">ИНН</label>
+            </div>
+            <div class="form-floating mb-3">
+              <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
+              <label for="floatingPassword">Пароль</label>
+            </div>
+            <div class="checkbox mb-3">
+              <label>
+                <input type="checkbox" value="remember-me"> Запомнить меня
+              </label>
+            </div>
+            <button class="w-100 btn btn-lg btn-primary" type="submit">Войти</button>
+            <hr class="my-4">
+            <small class="text-muted">Нажимая на кнопку <i>Войти</i>, Вы соглашаетесь с <a href="#">условиями пользования</a></small>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
