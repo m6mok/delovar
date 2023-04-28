@@ -10,7 +10,7 @@
 
 {% block body %}
 <div class="container-lg color-mid">
-  <div class="px-4 py-5 text-center border-bottom text-white">
+  <div class="px-4 py-5 text-center text-white">
     <h3 class="display-4 fw-bold">Быстрые и бесплатные<br>юридические документы</h3>
     <div class="col-lg-6 mx-auto">
       <p class="lead mb-4">Мы предлагаем услугу роботизированной юридической помощи. Если Вам нужно составить документ, и Вы хотите сделать это быстро и бесплатно, то наша программа Вас выручит!</p>
@@ -28,7 +28,7 @@
       </div>
     </div>
   </div>
-  <div class="container px-4 py-5 text-white">
+  <div class="container px-4 pt-5 text-white">
     <h2 class="pb-2 border-bottom">Наши особенности</h2>
     <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
       <div class="feature col">
@@ -60,12 +60,12 @@
       </div>
     </div>
   </div>
-  <div id="sign-in" class="container col-xl-10 col-xxl-8 px-4 py-5 text-white">
+  <div id="sign-in" class="container col-xl-10 col-xxl-8 px-4 pb-5 text-white">
     <div class="row align-items-center g-lg-5 py-5">
       <div class="col-lg-7 text-center text-lg-start">
         <h3 class="display-4 fw-bold lh-1 mb-3">Начните работу с документами прямо сейчас!</h3>
         <p class="col-lg-10 fs-4">Если Вы уже являетесь партнёром нашей фирмы, то, войдя под своим ИНН и личным паролем, Вы сразу перейдёте на страницу создания документов.</p>
-        <small class="col-lg-10">В ином случае, Вы можете оставить заявку на партнёрство <a href="#" class="text-decoration-none">здесь</a>.</small>
+        <small class="col-lg-10">В ином случае, Вы можете оставить заявку на партнёрство <a href="{% url 'main:about' %}" class="text-decoration-none">здесь</a>.</small>
       </div>
       <div class="col-md-10 mx-auto col-lg-5">
         {% if user.is_authenticated %}
@@ -79,7 +79,7 @@
         {% else %}
           <form class="p-4 p-md-5 border rounded-3 bg-light text-dark">
             <div class="form-floating mb-3">
-              <input type="email" class="form-control" id="floatingInput" placeholder="name@example.com">
+              <input type="email" class="form-control" id="floatingInput" placeholder="INN">
               <label for="floatingInput">ИНН</label>
             </div>
             <div class="form-floating mb-3">
