@@ -1,5 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, logout, login
+from django.urls import reverse_lazy
+
+from . import forms
 
 
 @login_required
@@ -43,6 +47,29 @@ def profile(request):
     return render(request, 'main/profile.html', context)
 
 
+def profile_login(request):
+    form = None
+    if request.method == 'POST':
+        form = forms.LoginForm(request.POST)
+        if form.is_valid():
+            user = authenticate(username=form.data['inn'], password=form.data['password'])
+            if user:
+                login(request, user)
+                return redirect(reverse_lazy('main:profile'))
+    context = {}
+    if form:
+        context['form'] = form
+    else:
+        context['form'] = forms.LoginForm()
+    return render(request, 'main/login.html', context)
+
+
+def profile_logout(request):
+    logout(request)
+    context = {}
+    return render(request, 'main/logout.html', context)
+
+
 def about(request):
     context = {}
     return render(request, 'main/about.html', context)
@@ -59,5 +86,10 @@ def faq(request):
 
 
 def index(request):
+    form = forms.LoginForm(request.POST)
     context = {}
+    if form:
+        context['form'] = form
+    else:
+        context['form'] = forms.LoginForm()
     return render(request, 'main/index.html', context)

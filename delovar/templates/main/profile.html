@@ -5,13 +5,26 @@
 {% endblock %}
 
 {% block head %}<style>
-
+  #main {
+    overflow-y: scroll;
+    height: calc(100vh - 67px - 73px);
+  }
+  @media screen and (min-width:768px) {
+    #main {
+      height: calc(100vh - 67px - 49px);
+    }
+  }
+  @media screen and (min-width:992px) {
+    #main {
+      height: calc(100vh - 73px - 83px);
+    }
+  }
 </style>{% endblock %}
 
 {% block body %}
-<div class="text-white container color-mid" style="height: 83.5vh; overflow-y:scroll;">
-  <div class="d-flex justify-content-between p-5">
-    <div>
+<div id="main" class="text-white container color-mid">
+  <div class="row row-cols-1 row-cols-md-2 justify-content-between px-5 pt-3">
+    <div class="col mb-3">
       <h3>Выберите тип документа</h3>
       <select id="document_preview_select" class="form-select" aria-label="Default select example">
         {% for document in documents %}
@@ -19,12 +32,14 @@
         {% endfor %}
       </select>
     </div>
-    <div>
-      <a href="#" class="btn btn-lg btn-primary">Загрузить базу данных</a>
+    <div class="col">
+      <div class="d-flex justify-content-end justify-content-md-end mt-4">
+        <a href="#" class="btn btn-lg btn-primary">Загрузить базу данных</a>
+      </div>
     </div>
   </div>
-  <div class="row justify-content-end p-5">
-    <div class="col col-md-6 col-lg-8">
+  <div class="row row-cols-1 row-cols-lg-2 p-5">
+    <div class="col col-md-6 col-lg-8 mb-3">
       <h3>Превью документа</h3>
       <iframe id="document_preview" frameborder="0" style="width: 100%; height: 80vh;"></iframe>
     </div>
@@ -54,10 +69,13 @@
   </div>
 </div>
 <script>
-  $('#document_preview_select').on('change', (el) => {
+  function update_preview(el) {
     let option = el.currentTarget.options[el.currentTarget.selectedIndex];
     console.log(option.getAttribute('data-bs-url'))
     document.getElementById('document_preview').src = option.getAttribute('data-bs-url');
-  })
+  }
+  $('#document_preview_select')
+    .on('change', update_preview)
+    .trigger('change')
 </script>
 {% endblock %}

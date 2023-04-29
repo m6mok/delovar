@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="container-lg p-5 color-mid">
+  <div class="row justify-content-center">
+    <form method="post" class="col col-md-6 col-lg-4 p-4 p-md-5 border rounded-3 bg-light text-dark" style="width: 350px;">
+      {% csrf_token %}
+      <div class="form-floating mb-3">
+        {{ form.inn }}
+        <label>{{ form.inn.label_tag }}</label>
+      </div>
+      <div class="form-floating mb-3">
+        {{ form.password }}
+        <label>{{ form.password.label_tag }}</label>
+      </div>
+      <div class="checkbox mb-3">
+        <label>
+          <input type="checkbox" value="remember-me"> Запомнить меня
+        </label>
+      </div>
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Войти</button>
+      <hr class="my-4">
+      <small class="text-muted">Нажимая на кнопку <i>Войти</i>, Вы соглашаетесь с <a href="#">условиями пользования</a></small>
+      <input type="hidden" name="next" value="{{ next }}" />
+    </form>
+  </div>
+</div>
+{% endblock %}

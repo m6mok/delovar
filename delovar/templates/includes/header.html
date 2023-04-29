@@ -1,4 +1,4 @@
-<header class="border-bottom py-3 color-y">
+<header class="border-bottom py-1 py-lg-3 color-y">
   <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-around container">
     <a href="{% url 'main:index' %}" class="d-flex align-items-center mb-2 mb-lg-0 me-3 text-dark text-decoration-none">
       {% include 'svg/logo.svg' %}
@@ -6,7 +6,17 @@
     </a>
     <div class="col-md-3 me-2 text-end">
       {% if user.is_authenticated %}
-        <a href="{% url 'main:profile' %}" class="btn btn-primary">Аккаунт</a>
+        <div class="btn-group">
+          <a href="{% url 'main:profile' %}" class="btn btn-primary">
+            Аккаунт
+          </a>
+          <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item text-danger" href="{% url 'main:profile_logout' %}">Выйти</a></li>
+          </ul>
+        </div>
       {% else %}
         <a href="{% url 'main:index' %}#sign-in" class="btn btn-outline-primary">Войти</a>
       {% endif %}

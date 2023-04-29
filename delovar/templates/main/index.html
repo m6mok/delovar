@@ -77,14 +77,15 @@
             <small class="text-muted">Нажимая на кнопку <i>Начать работу</i>, Вы соглашаетесь с <a href="#">условиями пользования</a></small>
           </div>
         {% else %}
-          <form class="p-4 p-md-5 border rounded-3 bg-light text-dark">
+          <form method="post" class="p-4 p-md-5 border rounded-3 bg-light text-dark" action="{% url 'main:profile_login' %}">
+            {% csrf_token %}
             <div class="form-floating mb-3">
-              <input type="email" class="form-control" id="floatingInput" placeholder="INN">
-              <label for="floatingInput">ИНН</label>
+              {{ form.inn }}
+              <label>{{ form.inn.label_tag }}</label>
             </div>
             <div class="form-floating mb-3">
-              <input type="password" class="form-control" id="floatingPassword" placeholder="Password">
-              <label for="floatingPassword">Пароль</label>
+              {{ form.password }}
+              <label>{{ form.password.label_tag }}</label>
             </div>
             <div class="checkbox mb-3">
               <label>
