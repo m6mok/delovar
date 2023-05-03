@@ -9,14 +9,26 @@
     overflow-y: scroll;
     height: calc(100vh - 67px - 73px);
   }
+  #document_preview {
+    width: 100%;
+    height: calc(100vh - 67px - 73px - 16px - 80px - 34px - 65px);
+    padding-right: 3rem;
+  }
   @media screen and (min-width:768px) {
     #main {
       height: calc(100vh - 67px - 49px);
+    }
+    #document_preview {
+      height: calc(100vw - 67px - 73px - 16px - 80px - 34px - 65px);
+      padding-right: 5rem;
     }
   }
   @media screen and (min-width:992px) {
     #main {
       height: calc(100vh - 73px - 83px);
+    }
+    #document_preview {
+      padding-right: 0rem;
     }
   }
 </style>{% endblock %}
@@ -35,36 +47,17 @@
       </div>
       <div>
         <h3>Превью документа</h3>
-        <iframe id="document_preview" frameborder="0" style="width: 100%; height: 80vh;"></iframe>
+        <iframe id="document_preview" frameborder="0"></iframe>
       </div>
     </div>
     <div class="col mb-3 px-3">
       <div class="mb-3">
         <h3>Загрузите базу данных</h3>
-        <button class="btn btn-lg btn-primary">Загрузить базу данных</button>
+        <button id="choose-database" class="btn btn-lg btn-primary">Загрузить базу данных</button>
+        <input id="database-input" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display: none;"/>
       </div>
-      <div>
+      <div id="database-table-inner">
         <h3>База данных</h3>
-        <table class="table table-striped">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Имя</th>
-              <th scope="col">Фамилия</th>
-              <th scope="col">Никнейм</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for row in data %}
-              <tr>
-                <th scope="row"><input type="checkbox" class="form-check-input name=" id="check_{{ row.pk }}"></th>
-                <td>{{ row.name }}</td>
-                <td>{{ row.surname }}</td>
-                <td>{{ row.nickname }}</td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
       </div>
     </div>
     <div class="col px-3">
@@ -78,6 +71,8 @@
     </div>
   </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
 <script>
   function update_document_preview(el) {
     let index = el.currentTarget.selectedIndex;
@@ -86,11 +81,97 @@
     let preview = document.getElementById('document_preview');
     preview.src = url;
     localStorage.setItem('document_choice', index);
-    console.log('document_choice = ' + index);
   }
 
   $('#document_preview_select')
     .on('change', update_document_preview)
     .trigger('change')
+
+  const excelFileInput = document.getElementById('database-input');
+
+  excelFileInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const tableData = XLSX.utils.sheet_to_json(worksheet);
+
+      createTable(tableData);
+    };
+
+    reader.readAsArrayBuffer(file);
+  });
+
+  function getTableSample() {
+    return $('<tr>')
+      .append($('<th>', { // open modal
+        scope: 'row',
+        class: 'btn text-white form-control bg-primary',
+        click: () => {openUserUpdateModal(id)},
+        text: localStorage.getItem('pk-' + id)
+      }))
+      .append($('<td>', { // phone
+        class: 'btn table-cell-button text-decoration-none',
+        click: () => {window.location.href = 'tel:+' + id},
+        text: '📞'
+      }))
+      .append($('<td>') // firstname
+        .append($('<span>', {
+          id: 'firstname-' + id
+        }))
+      )
+      .append($('<td>') // lastname
+        .append($('<span>', {
+          id: 'lastname-' + id
+        }))
+      )
+      .append($('<td>', { // output1
+        class: 'btn table-cell-button',
+        id: 'output1-' + id,
+        click: () => {ajaxToggleUser(id, 'output1')}
+      }))
+      .append($('<td>', { // dialToOpen
+        class: 'btn table-cell-button',
+        id: 'dialToOpen-' + id,
+        click: () => {ajaxToggleUser(id, 'dialToOpen')}
+      }))
+      .append($('<td>', { // delete
+        class: 'btn table-cell-button text-white bg-danger',
+        click: () => {openDeleteConfirmModal(id)},
+        text: '-'
+      }))
+  }
+
+  function createTable(data) {
+    const divElement = document.createElement('div');
+
+    divElement.setAttribute('id', 'database-table');
+
+    const tableElement = document.createElement('table');
+
+    for (let i = 0; i < data.length; i++) {
+      const rowElement = document.createElement('tr');
+
+      for (const key in data[i]) {
+        const cellElement = document.createElement('td');
+        cellElement.innerText = data[i][key];
+        rowElement.appendChild(cellElement);
+      }
+
+      tableElement.appendChild(rowElement);
+    }
+
+    divElement.appendChild(tableElement);
+
+    document.getElementById('database-table-inner').appendChild(divElement);
+  }
+
+  $('#choose-database').on('click', function() {
+    $('#database-input').trigger('click');
+  });
 </script>
 {% endblock %}

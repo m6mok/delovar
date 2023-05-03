@@ -12,19 +12,19 @@ def profile(request):
         'data': [
             {
                 'pk': 0,
-                'name': '1',
+                'name': 'Иванов Иван Иванович',
                 'surname': '11',
                 'nickname': '111',
             },
             {
                 'pk': 1,
-                'name': '2',
+                'name': 'Петров Пётр Петрович',
                 'surname': '22',
                 'nickname': '222',
             },
             {
                 'pk': 2,
-                'name': '3',
+                'name': 'Яковлев Яков Яковлевич',
                 'surname': '333',
                 'nickname': '',
             }
@@ -32,16 +32,8 @@ def profile(request):
         'documents': [
             {
                 'name': 'Документ 1',
-                'url': 'https://ppnm1.ru/Prays_ot_01_04_23.pdf'
-            },
-            {
-                'name': 'Документ 2',
-                'url': ''
-            },
-            {
-                'name': 'Документ 3',
-                'url': ''
-            },
+                'url': 'https://view.officeapps.live.com/op/embed.aspx?src={}'.format('https://cn57892.tmweb.ru/document1.docx')
+            }
         ]
     }
     return render(request, 'main/profile.html', context)
