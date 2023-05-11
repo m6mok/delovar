@@ -5,30 +5,31 @@
 {% endblock %}
 
 {% block head %}<style>
+  :root {
+    --header-width: 70px;
+    --footer-width: 65px;
+    --body-spacing: 240px;
+  }
+  header {
+    height: var(--header-width);
+  }
+  footer {
+    height: var(--footer-width);
+  }
+  .big-data {
+    overflow-y: auto;
+    height: calc(100vh - var(--header-width) - var(--footer-width) - var(--body-spacing))
+  }
   #main {
     overflow-y: scroll;
-    height: calc(100vh - 67px - 73px);
-  }
-  #document_preview {
-    width: 100%;
-    height: calc(100vh - 67px - 73px - 16px - 80px - 34px - 65px);
-    padding-right: 3rem;
+    height: calc(100vh - var(--header-width) - var(--footer-width));
   }
   @media screen and (min-width:768px) {
-    #main {
-      height: calc(100vh - 67px - 49px);
-    }
-    #document_preview {
-      height: calc(100vw - 67px - 73px - 16px - 80px - 34px - 65px);
-      padding-right: 5rem;
-    }
   }
   @media screen and (min-width:992px) {
-    #main {
-      height: calc(100vh - 73px - 83px);
-    }
-    #document_preview {
-      padding-right: 0rem;
+    :root {
+      --header-width: 85px;
+      --footer-width: 75px;
     }
   }
 </style>{% endblock %}
@@ -38,35 +39,126 @@
   <div class="row row-cols-1 row-cols-lg-3 justify-content-between pt-3 mx-0">
     <div class="col mb-3 px-3">
       <div class="mb-3">
-        <h3>Выберите тип документа</h3>
-        <select id="document_preview_select" class="form-select" aria-label="Default select example">
-          {% for document in documents %}
-            <option value="{{ forloop.counter }}" data-bs-url="{{ document.url }}">{{ document.name }}</option>
+        <h3>1. Выберите тип документа</h3>
+        <select id="document_preview_select" class="form-select btn btn-outline-primary" style="height: 48px;" aria-label="Default select example">
+          {% for sample in samples %}
+            <option value="{{ forloop.counter }}" data-bs-url="{{ sample.url }}">{{ sample.name }}</option>
           {% endfor %}
         </select>
-      </div>
-      <div>
-        <h3>Превью документа</h3>
-        <iframe id="document_preview" frameborder="0"></iframe>
       </div>
     </div>
     <div class="col mb-3 px-3">
       <div class="mb-3">
-        <h3>Загрузите базу данных</h3>
+        <h3>2. Загрузите базу данных</h3>
         <button id="choose-database" class="btn btn-lg btn-primary">Загрузить базу данных</button>
         <input id="database-input" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display: none;"/>
       </div>
-      <div id="database-table-inner">
-        <h3>База данных</h3>
+      <div class="mb-3">
+        <div class="row justify-content-around">
+          <div class="col">
+            <h3>База данных</h3>
+          </div>
+          <div class="col text-end me-3">
+            <a id="filter-button" data-bs-toggle="collapse" href="#filterCollapse" role="button" aria-expanded="false" aria-controls="filterCollapse">
+              {% include 'svg/filter.svg' %}
+            </a>
+          </div>
+        </div>
+        <div class="collapse" id="filterCollapse">
+          <form class="card card-body text-white color-y" action="javascript:initSettings()">
+            <h3>Фильтр</h3>
+            <div class="row mb-3">
+              <div class="col-3">
+                <h5>Сумма</h5>
+              </div>
+              <div class="col-9">
+                <div class="row mb-1">
+                  <div class="input-group">
+                    <span class="input-group-text">от</span>
+                    <input type="number" id="sumFromInput" class="form-control">
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="input-group">
+                    <span class="input-group-text">до</span>
+                    <input type="number" id="sumToInput" class="form-control">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="text-end">
+              <button class="btn btn-primary" type="submit">Применить</button>
+            </div>
+          </form>
+        </div>
+        <div id="database-table-inner" class="big-data" style="border: 1px solid #fff;"></div>
+      </div>
+      <div>
+        <div class="row justify-content-between text-end">
+          <div class="col-9">
+            <h3>Выбрано дел:</h3>
+          </div>
+          <div class="col-2 me-3">
+            <h3 id="current-cases-count">0</h3>
+          </div>
+        </div>
       </div>
     </div>
     <div class="col px-3">
       <div class="mb-3">
-        <h3>Начните процесс</h3>
-        <button class="btn btn-lg btn-primary">Начать</button>
+        <h3>3. Начните процесс</h3>
+        {% csrf_token %}
+        <button class="btn btn-lg btn-primary" onclick="ajaxSendCases()">Начать</button>
       </div>
       <div>
-        <h3>Результаты</h3>
+        <div class="row align-items-top">
+          <div class="col-8">
+            <h3>Нужные документы</h3>
+          </div>
+          <div class="col-3 text-end">
+            <div class="dropdown">
+              <button class="btn btn-outline-primary badge dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Дело
+              </button>
+              <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#"><span class="text-success">✔</span>  Сибирьянов П. А.</a></li>
+                <li><a class="dropdown-item" href="#"><span class="text-success">✔</span>  Мавлянова С. Р.</a></li>
+                <li><a class="dropdown-item" href="#"><span class="text-success">✔</span>  Сергеева А. И.</a></li>
+                <li><a class="dropdown-item" href="#"><span class="text-danger">✘</span>  Никитин Т. А.</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="big-data" style="border: 1px solid #fff;">
+          <table class="table table-stripted">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Название</th>
+                <th>Загрузка</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for document in documents %}
+                <tr>
+                  <td>{{ forloop.counter }}.</td>
+                  <td>{{ document.name }}</td>
+                  <td>
+                    {% if document.loaded %}
+                      <button class="btn btn-primary badge" disabled>Загружено</button>
+                    {% else %}
+                      {% if document.auto %}
+                      <button class="btn btn-danger badge" disabled>Робот</button>
+                      {% else %}
+                        <a onclick="$('#document-input-{{ forloop.counter }}').trigger('click')" class="btn btn-primary badge">Загрузить</a>
+                        <input id="document-input-{{ forloop.counter }}" type="file" accept="{{ document.type }}" hidden>
+                      {% endif %}
+                    {% endif %}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -74,6 +166,46 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
 <script>
+
+  var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+  function csrfSafeMethod(method) {
+      return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  }
+
+  function ajaxSetup() {
+    $.ajaxSetup({
+      beforeSend: function (xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+          xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+      }
+    });
+  }
+
+  function ajaxSendCases() {
+    let cases = [];
+    $('input').each((index, el) => {
+      if (el.id.match(/check-\d+/) && el.checked) {
+        let id = Number(el.id.split('-')[1])
+        cases.push($('#database-' + id).text())
+      }
+    })
+
+    console.log(cases)
+
+    ajaxSetup()
+
+    $.ajax({
+      url: "{% url 'api:api' %}",
+      type: 'post',
+      dataType : "json",
+      data: {
+        cases: cases
+      }
+    })
+
+  }
+
   function update_document_preview(el) {
     let index = el.currentTarget.selectedIndex;
     let option = el.currentTarget.options[index];
@@ -83,91 +215,158 @@
     localStorage.setItem('document_choice', index);
   }
 
-  $('#document_preview_select')
-    .on('change', update_document_preview)
-    .trigger('change')
-
   const excelFileInput = document.getElementById('database-input');
 
+  var database;
+  var settings = {
+    'sumFrom': 0,
+    'sumTo': Number.MAX_SAFE_INTEGER
+  }
+
   excelFileInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    const reader = new FileReader();
+    let file = event.target.files[0];
+    let reader = new FileReader();
 
     reader.onload = (event) => {
       const data = new Uint8Array(event.target.result);
       const workbook = XLSX.read(data, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[sheetName];
-      const tableData = XLSX.utils.sheet_to_json(worksheet);
+      database = XLSX.utils.sheet_to_json(worksheet);
 
-      createTable(tableData);
+      updateTable();
+      updateFilter();
     };
 
-    reader.readAsArrayBuffer(file);
+    console.log(file)
+    if (file != null) {
+      reader.readAsArrayBuffer(file);
+      $('#filter-button').removeAttr('disabled');
+    } else {
+      database = null;
+      updateTable();
+      updateFilter();
+      $('#filter-button').attr('disabled', true);
+    }
   });
 
-  function getTableSample() {
-    return $('<tr>')
-      .append($('<th>', { // open modal
-        scope: 'row',
-        class: 'btn text-white form-control bg-primary',
-        click: () => {openUserUpdateModal(id)},
-        text: localStorage.getItem('pk-' + id)
-      }))
-      .append($('<td>', { // phone
-        class: 'btn table-cell-button text-decoration-none',
-        click: () => {window.location.href = 'tel:+' + id},
-        text: '📞'
-      }))
-      .append($('<td>') // firstname
-        .append($('<span>', {
-          id: 'firstname-' + id
-        }))
-      )
-      .append($('<td>') // lastname
-        .append($('<span>', {
-          id: 'lastname-' + id
-        }))
-      )
-      .append($('<td>', { // output1
-        class: 'btn table-cell-button',
-        id: 'output1-' + id,
-        click: () => {ajaxToggleUser(id, 'output1')}
-      }))
-      .append($('<td>', { // dialToOpen
-        class: 'btn table-cell-button',
-        id: 'dialToOpen-' + id,
-        click: () => {ajaxToggleUser(id, 'dialToOpen')}
-      }))
-      .append($('<td>', { // delete
-        class: 'btn table-cell-button text-white bg-danger',
-        click: () => {openDeleteConfirmModal(id)},
-        text: '-'
-      }))
+  function updateCasesCount() {
+    let count = $('input').filter((index, el) => {
+      return el.id.match(/check-\d+/) && el.checked
+    }).length;
+    $('#current-cases-count').text(count)
+    checkAllCasesChecked()
   }
 
-  function createTable(data) {
-    const divElement = document.createElement('div');
+  function checkAllCasesChecked() {
+    let all = $('input').filter((index, el) => {
+      return el.id.match(/check-\d+/) && el.checked
+    }).length == $('input').filter((index, el) => {
+      return el.id.match(/check-\d+/)
+    }).length;
+    $('#check-all').prop('checked', all)
+  }
 
-    divElement.setAttribute('id', 'database-table');
+  function selectAllNames() {
+    let value = $(this).is(':checked');
+    $('input').filter((index, el) => {
+      return el.id.match(/check-\d+/)
+    }).prop('checked', value);
+    updateCasesCount()
+  }
 
-    const tableElement = document.createElement('table');
+  function getDatabaseTable() {
+    let result = $('<table>', {
+      class: 'table table-striped'
+    })
+      .append(
+        $('<thead>')
+          .append(
+            $('<tr>')
+              .append($('<th>', {
+                scope: "col"
+              })
+                .append($('<input>', {
+                  class: 'form-check-input',
+                  type: 'checkbox',
+                  id: 'check-all',
+                  change: selectAllNames
+                }))
+              )
+              .append($('<th>', {
+                scope: "col",
+                text: 'Имя'
+              }))
+              .append($('<th>', {
+                scope: "col",
+                text: 'Сумма'
+              }))
+          )
+      )
+      .append($('<tbody>'))
+    
+    for (let pk = 0; pk < database.length; pk++) {
+      if (database[pk]['amount'] < settings['sumFrom'] || database[pk]['amount'] > settings['sumTo'])
+        continue;
+      let rowElement = $('<tr>')
+        .append(
+          $('<td>')
+            .append($('<input>', {
+              class: 'form-check-input',
+              type: 'checkbox',
+              id: 'check-' + pk,
+              change: updateCasesCount
+            }))
+        )
 
-    for (let i = 0; i < data.length; i++) {
-      const rowElement = document.createElement('tr');
-
-      for (const key in data[i]) {
-        const cellElement = document.createElement('td');
-        cellElement.innerText = data[i][key];
-        rowElement.appendChild(cellElement);
+      for (const key in database[pk]) {
+        if (key === 'name' || key == 'amount') {
+          rowElement.append($('<td>', {
+            id: 'database-' + pk,
+            text: database[pk][key]
+          }))
+        }
       }
 
-      tableElement.appendChild(rowElement);
+      result.children('tbody').append(rowElement);
     }
 
-    divElement.appendChild(tableElement);
+    return result;
+  }
 
-    document.getElementById('database-table-inner').appendChild(divElement);
+  function initSettings() {
+    settings['sumFrom'] = $('#sumFromInput').val() === '' ? Number($('#sumFromInput').prop('placeholder')) : Number($('#sumFromInput').val());
+    settings['sumTo'] = $('#sumToInput').val() === '' ? Number($('#sumToInput').prop('placeholder')) : Number($('#sumToInput').val());
+    console.log(settings)
+    updateTable()
+  }
+
+  function updateFilter() {
+    if (database === null) {
+      $('#sumFromInput').removeAttr('placeholder')
+      $('#sumToInput').removeAttr('placeholder')
+      console.log(1)
+      return
+    }
+
+    let maxAmount = 0, minAmount = Number.MAX_SAFE_INTEGER;
+    for (let i = 0; i < database.length; i++) {
+        let amount = Number(database[i]['amount']);
+        if (amount > maxAmount)
+          maxAmount = amount;
+        if (amount < minAmount)
+          minAmount = amount;
+      }
+    $('#sumFromInput').prop('placeholder', minAmount)
+    $('#sumToInput').prop('placeholder', maxAmount)
+    settings['sumFrom'] = Number(minAmount)
+    settings['sumTo'] = Number(maxAmount)
+  }
+
+  function updateTable() {
+    $('#database-table-inner>table').remove()
+    if (database !== null)
+      $('#database-table-inner').append(getDatabaseTable());
   }
 
   $('#choose-database').on('click', function() {

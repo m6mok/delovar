@@ -9,29 +9,17 @@ from . import forms
 @login_required
 def profile(request):
     context = {
-        'data': [
-            {
-                'pk': 0,
-                'name': 'Иванов Иван Иванович',
-                'surname': '11',
-                'nickname': '111',
-            },
-            {
-                'pk': 1,
-                'name': 'Петров Пётр Петрович',
-                'surname': '22',
-                'nickname': '222',
-            },
-            {
-                'pk': 2,
-                'name': 'Яковлев Яков Яковлевич',
-                'surname': '333',
-                'nickname': '',
-            }
-        ],
         'documents': [
+            {'name': 'Заявление о выдаче судебного приказа', 'auto': True, 'loaded': False},
+            {'name': 'Выписка из ЕГРН', 'auto': False, 'loaded': True, 'type': '.pdf'},
+            {'name': 'Расчёт задолжности', 'auto': False, 'loaded': False, 'type': '.xlsx'},
+            {'name': 'Выписка из ЕГРЮЛ', 'auto': True, 'loaded': False},
+            {'name': 'Договор управления МКД', 'auto': True, 'loaded': False},
+            {'name': 'Квитанция об оплате госпошлины', 'auto': True, 'loaded': True}
+        ],
+        'samples': [
             {
-                'name': 'Документ 1',
+                'name': 'Взыскать задолжность с помощью судебного приказа',
                 'url': 'https://view.officeapps.live.com/op/embed.aspx?src={}'.format('https://cn57892.tmweb.ru/document1.docx')
             }
         ]
