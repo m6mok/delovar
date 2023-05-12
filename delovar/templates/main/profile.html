@@ -18,7 +18,7 @@
   }
   .big-data {
     overflow-y: auto;
-    height: calc(100vh - var(--header-width) - var(--footer-width) - var(--body-spacing))
+    height: calc(100vh - var(--header-width) - var(--footer-width))
   }
   #main {
     overflow-y: scroll;
@@ -49,16 +49,36 @@
     </div>
     <div class="col mb-3 px-3">
       <div class="mb-3">
-        <h3>2. Загрузите базу данных</h3>
-        <button id="choose-database" class="btn btn-lg btn-primary">Загрузить базу данных</button>
-        <input id="database-input" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display: none;"/>
+        <h3>2. Заполните базу данных</h3>
+        <div class="row text-center">
+          <div class="col-5">
+            <button id="choose-database" onclick="toggleDatabaseMode('database');" class="btn btn-lg btn-primary">База данных</button>
+            <input id="database-input" type="file" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" style="display: none;"/>
+          </div>
+          <div class="col-2 d-flex align-items-end">
+            <h3>или</h3>
+          </div>
+          <div class="col-5">
+            <button id="manual-input" onclick="toggleDatabaseMode('manual');" class="btn btn-lg btn-outline-primary">Ручной ввод</button>
+          </div>
+        </div>
       </div>
       <div class="mb-3">
         <div class="row justify-content-around">
-          <div class="col">
-            <h3>База данных</h3>
+          <div class="col-8">
+            <div class="row">
+              <div class="col-9">
+                <h3>База данных (<span id="current-cases-count">0</span>)</h3>
+              </div>
+              <div class="col-3">
+                <div id="manual-input-controls" class="btn-group" hidden>
+                  <button onclick="addManualLine()" class="btn badge btn-primary" style="width: 30px;">+</button>
+                  <button onclick="deleteMalualLine()" class="btn badge btn-danger" style="width: 30px;">-</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="col text-end me-3">
+          <div class="col-2 text-end me-3">
             <a id="filter-button" data-bs-toggle="collapse" href="#filterCollapse" role="button" aria-expanded="false" aria-controls="filterCollapse">
               {% include 'svg/filter.svg' %}
             </a>
@@ -93,16 +113,6 @@
         </div>
         <div id="database-table-inner" class="big-data" style="border: 1px solid #fff;"></div>
       </div>
-      <div>
-        <div class="row justify-content-between text-end">
-          <div class="col-9">
-            <h3>Выбрано дел:</h3>
-          </div>
-          <div class="col-2 me-3">
-            <h3 id="current-cases-count">0</h3>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="col px-3">
       <div class="mb-3">
@@ -129,7 +139,7 @@
             </div>
           </div>
         </div>
-        <div class="big-data" style="border: 1px solid #fff;">
+        <div class="big-data mb-3" style="border: 1px solid #fff;">
           <table class="table table-stripted">
             <thead>
               <tr>
@@ -166,6 +176,116 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
 <script>
+
+  function getManualLine(pk) {
+    return $('<tr>')
+      .append(
+        $('<td>')
+          .append($('<input>', {
+            class: 'form-check-input',
+            type: 'checkbox',
+            id: 'check-' + pk,
+            change: updateCasesCount
+          }))
+      )
+      .append(
+        $('<td>')
+          .append($('<input>', {
+              class: 'form-control',
+              id: 'database-name-' + pk,
+              placeholder: 'Иванов Иван Иванович'
+            }))
+      )
+      .append(
+        $('<td>')
+          .append($('<input>', {
+              class: 'form-control',
+              id: 'database-amount-' + pk,
+              placeholder: '12345.67'
+            }))
+      )
+  }
+
+  function getManualTable() {
+    return $('<table>', {
+      class: 'table table-striped'
+    })
+      .append(
+        $('<thead>')
+          .append(
+            $('<tr>')
+              .append($('<th>', {
+                scope: "col"
+              })
+                .append($('<input>', {
+                  class: 'form-check-input',
+                  type: 'checkbox',
+                  id: 'check-all',
+                  change: selectAllNames
+                }))
+              )
+              .append($('<th>', {
+                scope: "col",
+                text: 'Имя',
+                style: 'min-width: 150px'
+              }))
+              .append($('<th>', {
+                scope: "col",
+                text: 'Сумма',
+                style: 'min-width: 150px'
+              }))
+          )
+      )
+      .append($('<tbody>'))
+  }
+
+  function createManualTable() {
+    let table = getManualTable()
+    $('#database-table-inner').append(table)
+  }
+
+  function addManualLine() {
+    let tbody = $('#database-table-inner>table>tbody');
+    if (tbody !== null)
+      tbody.append(getManualLine(tbody.children().length))
+  }
+
+  function deleteMalualLine() {
+    let tbody = $('#database-table-inner>table>tbody');
+    if (tbody !== null)
+      tbody.find('tr:last').remove()
+  }
+
+  function toggleDatabaseMode(inputType) {
+    switch (inputType) {
+      case 'manual':
+        $('#manual-input-controls').removeAttr('hidden')
+        $('#manual-input').toggleClass('btn-primary', true)
+        $('#manual-input').removeClass('btn-outline-primary')
+
+        $('#choose-database').removeClass('btn-primary')
+        $('#choose-database').toggleClass('btn-outline-primary', true)
+
+        $('#database-table-inner').empty()
+
+        createManualTable()
+
+        database = null;
+        break;
+      case 'database':
+        $('#manual-input-controls').prop('hidden', true)
+        $('#manual-input').removeClass('btn-primary')
+        $('#manual-input').toggleClass('btn-outline-primary', true)
+        
+        $('#choose-database').toggleClass('btn-primary', true)
+        $('#choose-database').removeClass('btn-outline-primary')
+        
+        $('#database-table-inner').empty()
+
+        database = null;
+        break;
+    }
+  }
 
   var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
   function csrfSafeMethod(method) {
@@ -259,12 +379,14 @@
   }
 
   function checkAllCasesChecked() {
-    let all = $('input').filter((index, el) => {
-      return el.id.match(/check-\d+/) && el.checked
-    }).length == $('input').filter((index, el) => {
-      return el.id.match(/check-\d+/)
-    }).length;
-    $('#check-all').prop('checked', all)
+    let 
+      checked = $('input').filter((index, el) => {
+        return el.id.match(/check-\d+/) && el.checked
+      }).length,
+      all = $('input').filter((index, el) => {
+        return el.id.match(/check-\d+/)
+      }).length;
+    $('#check-all').prop('checked', checked == all && all !== 0)
   }
 
   function selectAllNames() {
