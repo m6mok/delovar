@@ -85,7 +85,7 @@
           </div>
         </div>
         <div class="collapse" id="filterCollapse">
-          <form class="card card-body text-white color-y" action="javascript:initSettings()">
+          <form class="card card-body border border-white rounded-0 rounded-top text-white color-y" action="javascript:initSettings()">
             <h3>Фильтр</h3>
             <div class="row mb-3">
               <div class="col-3">
@@ -176,6 +176,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
 <script>
+  const csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+  const excelFileInput = document.getElementById('database-input');
+
+  var database = null;
+  var databaseMode = 'database';
+  var settings = {
+    'sumFrom': 0,
+    'sumTo': Number.MAX_SAFE_INTEGER
+  }
+
+  function updateDatabaseManual(pk, key) {
+    if (database == null)
+      database = []
+    if (database.length - 1 < pk) {
+      database.push({'name': null, 'amount': null})
+    }
+
+    let value = $('#database-' + key + '-' + pk).val();
+
+    switch (key) {
+      case 'name': {} break;
+      case 'amount': value = Number(value); break;
+    }
+    database[pk][key] = value;
+    updateFilter()
+  }
 
   function getManualLine(pk) {
     return $('<tr>')
@@ -193,15 +219,18 @@
           .append($('<input>', {
               class: 'form-control',
               id: 'database-name-' + pk,
-              placeholder: 'Иванов Иван Иванович'
+              placeholder: 'Иванов Иван Иванович',
+              change: () => updateDatabaseManual(pk, 'name')
             }))
       )
       .append(
         $('<td>')
           .append($('<input>', {
               class: 'form-control',
+              type: 'number',
               id: 'database-amount-' + pk,
-              placeholder: '12345.67'
+              placeholder: '12345.67',
+              change: () => updateDatabaseManual(pk, 'amount')
             }))
       )
   }
@@ -252,11 +281,16 @@
 
   function deleteMalualLine() {
     let tbody = $('#database-table-inner>table>tbody');
-    if (tbody !== null)
+    if (tbody !== null) {
       tbody.find('tr:last').remove()
+      database.pop()
+      updateFilter()
+    }
   }
 
   function toggleDatabaseMode(inputType) {
+    databaseMode = inputType;
+
     switch (inputType) {
       case 'manual':
         $('#manual-input-controls').removeAttr('hidden')
@@ -287,7 +321,6 @@
     }
   }
 
-  var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
   function csrfSafeMethod(method) {
       return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
   }
@@ -335,14 +368,6 @@
     localStorage.setItem('document_choice', index);
   }
 
-  const excelFileInput = document.getElementById('database-input');
-
-  var database;
-  var settings = {
-    'sumFrom': 0,
-    'sumTo': Number.MAX_SAFE_INTEGER
-  }
-
   excelFileInput.addEventListener('change', (event) => {
     let file = event.target.files[0];
     let reader = new FileReader();
@@ -358,7 +383,6 @@
       updateFilter();
     };
 
-    console.log(file)
     if (file != null) {
       reader.readAsArrayBuffer(file);
       $('#filter-button').removeAttr('disabled');
@@ -464,16 +488,15 @@
   }
 
   function updateFilter() {
-    if (database === null) {
+    if (database === null | database.length == 0) {
       $('#sumFromInput').removeAttr('placeholder')
       $('#sumToInput').removeAttr('placeholder')
-      console.log(1)
       return
     }
 
     let maxAmount = 0, minAmount = Number.MAX_SAFE_INTEGER;
-    for (let i = 0; i < database.length; i++) {
-        let amount = Number(database[i]['amount']);
+    for (let pk = 0; pk < database.length; pk++) {
+        let amount = Number(database[pk]['amount']);
         if (amount > maxAmount)
           maxAmount = amount;
         if (amount < minAmount)
@@ -481,14 +504,35 @@
       }
     $('#sumFromInput').prop('placeholder', minAmount)
     $('#sumToInput').prop('placeholder', maxAmount)
-    settings['sumFrom'] = Number(minAmount)
-    settings['sumTo'] = Number(maxAmount)
+    if (settings['sumFrom'] < minAmount)
+      settings['sumFrom'] = Number(minAmount)
+    if (settings['sumTo'] > maxAmount)
+      settings['sumTo'] = Number(maxAmount)
   }
 
   function updateTable() {
     $('#database-table-inner>table').remove()
-    if (database !== null)
-      $('#database-table-inner').append(getDatabaseTable());
+    switch (databaseMode) {
+    case 'database':
+      if (database !== null)
+        $('#database-table-inner').append(getDatabaseTable());
+      break;
+    case 'manual':
+      createManualTable()
+      if (database !== null)
+        updateFilter()
+        for (let pk = 0; pk < database.length; pk++) {
+          let amount = database[pk]['amount']
+          if (amount < settings['sumFrom'] || amount > settings['sumTo'])
+            continue;
+          let tbody = $('#database-table-inner>table>tbody');
+          if (tbody !== null)
+            tbody.append(getManualLine(pk))
+          $('#database-name-' + pk).val(database[pk]['name'])
+          $('#database-amount-' + pk).val(database[pk]['amount'])
+        }
+      break;
+    }
   }
 
   $('#choose-database').on('click', function() {
