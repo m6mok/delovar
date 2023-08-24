@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Дело {{ case_name }}
+{% endblock %}
+
+{% block head %}<style>
+  ul.errorlist {
+    display: none;
+  }
+</style>{% endblock %}
+
+{% block body %}<div class="container p-3">
+  <h1 class="text-white">Дело {{ case_name }}</h1>
+    {% if error_message %}
+      <div class="bg-warning p-3 mb-3 text-white rounded-3">
+        {{ error_message }}
+      </div>
+    {% endif %}
+    <div class="card m-5 mb-3 color-y">
+      <div class="card-body row row-cols-2">
+        {% for field in case %}
+          <div class="col"><strong>{{ field.label }}</strong>: {{ field.value }}</div>
+        {% endfor %}
+      </div>
+    </div>
+    {{ form.as_p }}
+</div>{% endblock %}

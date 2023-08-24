@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Редактирование профиля пользователя
+{% endblock %}
+
+{% block head %}<style>
+  ul.errorlist {
+    display: none;
+  }
+</style>{% endblock %}
+
+{% block body %}<div class="container py-5">
+  <h1 class="text-white">Редактирование профиля пользователя</h1>
+  <form method="post">
+    {% csrf_token %}
+    {% for error in form.non_field_errors %}
+      <div class="bg-danger p-3 mb-3 text-white rounded-3">
+        {{ error }}
+      </div>
+    {% endfor %}
+    {% if error_message %}
+      <div class="bg-warning p-3 mb-3 text-white rounded-3">
+        {{ error_message }}
+      </div>
+    {% endif %}
+    {% for field in form %}
+      {% for error in field.errors %}
+        <div class="bg-danger p-3 mb-3 text-white rounded-3">
+          <strong>{{ field.label }}</strong>: {{ error }}
+        </div>
+      {% endfor %}
+    {% endfor %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-success">Сохранить</button>
+  </form>
+</div>{% endblock %}

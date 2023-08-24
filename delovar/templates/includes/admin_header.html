@@ -1,0 +1,12 @@
+<ul class="nav nav-pills">
+  <li class="nav-item">
+    <h3 class="text-white"><a href="{% url 'user:list' %}" class="nav-link{% if request.resolver_match.app_name == 'user' and request.resolver_match.url_name == 'list' %} active{% endif %}">
+      Список Пользователей
+    </a></h3>
+  </li>
+  <li class="nav-item">
+    <h3 class="text-white"><a href="{% url 'processor:cases' %}" class="nav-link{% if request.resolver_match.app_name == 'processor' and request.resolver_match.url_name == 'cases' %} active{% endif %}">
+      Список Дел
+    </a></h3>
+  </li>
+</ul>

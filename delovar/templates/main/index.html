@@ -8,15 +8,14 @@
 
 </style>{% endblock %}
 
-{% block body %}
-<div class="container-lg color-mid">
+{% block body %}<div class="container-lg color-mid">
   <div class="px-4 py-5 text-center text-white">
     <h3 class="display-4 fw-bold">Быстрые и бесплатные<br>юридические документы</h3>
     <div class="col-lg-6 mx-auto">
       <p class="lead mb-4">Мы предлагаем услугу роботизированной юридической помощи. Если Вам нужно составить документ, и Вы хотите сделать это быстро и бесплатно, то наша программа Вас выручит!</p>
       <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
         {% if user.is_authenticated %}
-          <a href="{% url 'main:profile' %}" class="btn btn-primary btn-lg px-4 me-sm-3">Начать работу</a>
+          <a href="{% url 'processor:profile' %}" class="btn btn-primary btn-lg px-4 me-sm-3">Начать работу</a>
         {% else %}
           <a href="{% url 'main:index' %}#sign-in" class="btn btn-outline-primary btn-lg px-4">Войти</a>
         {% endif %}
@@ -72,13 +71,23 @@
           <div class="p-4 p-md-5 border rounded-3 bg-light">
             <h2 class="mb-1">Всё готово!</h2>
             <p class="mb-3 text-muted">Вы уже вошли в аккаунт, поэтому остаётся только начать.</p>
-            <a href="{% url 'main:profile' %}" class="w-100 btn btn-lg btn-primary">Начать работу</a>
+            <a href="{% url 'processor:profile' %}" class="w-100 btn btn-lg btn-primary">Начать работу</a>
             <hr class="my-4">
             <small class="text-muted">Нажимая на кнопку <i>Начать работу</i>, Вы соглашаетесь с <a href="#">условиями пользования</a></small>
           </div>
         {% else %}
-          <form method="post" class="p-4 p-md-5 border rounded-3 bg-light text-dark" action="{% url 'main:profile_login' %}">
+          <form method="post" class="p-4 p-md-5 border rounded-3 bg-light text-dark" action="{% url 'main:index' %}">
             {% csrf_token %}
+            {% for error in form.non_field_errors %}
+              <div class="bg-danger p-3 mb-3 text-white rounded-3">
+                {{ error }}
+              </div>
+            {% endfor %}
+            {% if error_message %}
+              <div class="bg-warning p-3 mb-3 text-white rounded-3">
+                {{ error_message }}
+              </div>
+            {% endif %}
             <div class="form-floating mb-3">
               {{ form.inn }}
               <label>{{ form.inn.label_tag }}</label>
@@ -88,9 +97,8 @@
               <label>{{ form.password.label_tag }}</label>
             </div>
             <div class="checkbox mb-3">
-              <label>
-                <input type="checkbox" value="remember-me"> Запомнить меня
-              </label>
+              {{ form.remember_me }}
+              <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">{{ form.remember_me.label_tag }}</label>
             </div>
             <button class="w-100 btn btn-lg btn-primary" type="submit">Войти</button>
             <hr class="my-4">
@@ -100,5 +108,4 @@
       </div>
     </div>
   </div>
-</div>
-{% endblock %}
+</div>{% endblock %}

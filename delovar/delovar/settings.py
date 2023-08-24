@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from django.urls import reverse_lazy
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -18,7 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
-    'api.apps.ApiConfig'
+    'processor.apps.ProcessorConfig',
+    'user.apps.UserConfig'
 ]
 
 MIDDLEWARE = [
@@ -44,7 +47,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'core.context_processors.year.year'
+                'core.context_processors.functions.year'
             ],
         },
     },
@@ -88,4 +91,17 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = '/profile_login/'
+LOGIN_URL = reverse_lazy('main:index')
+
+AUTH_USER_MODEL = 'user.CustomUser'
+
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+SESSION_COOKIE_NAME = 'session'
+
+SESSION_COOKIE_AGE = 86400  # Например, 1 день
+
+SESSION_SAVE_EVERY_REQUEST = True  # Обновление сессии при каждом запросе
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Сессия сохраняется после закрытия браузера

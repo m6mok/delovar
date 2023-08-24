@@ -46,6 +46,12 @@
           {% endfor %}
         </select>
       </div>
+      <div class="mb-3">
+        <button class="btn btn-primary" onclick="createWebSocket()">WebSocket</button>
+      </div>
+      <div class="mb-3">
+        <img id="webSocketImage" width="400px" height="300px"/>
+      </div>
     </div>
     <div class="col mb-3 px-3">
       <div class="mb-3">
@@ -327,36 +333,74 @@
 
   function ajaxSetup() {
     $.ajaxSetup({
-      beforeSend: function (xhr, settings) {
+      beforeSend: (xhr, settings) => {
         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
           xhr.setRequestHeader("X-CSRFToken", csrftoken);
         }
+      },
+      headers: {
+        'x-access-token': '{{ token }}'
       }
     });
   }
 
-  function ajaxSendCases() {
+  function getCurrentCasesData() {
     let cases = [];
     $('input').each((index, el) => {
       if (el.id.match(/check-\d+/) && el.checked) {
         let id = Number(el.id.split('-')[1])
-        cases.push($('#database-' + id).text())
+        let frame = database[id];
+        cases.push({
+          document_type: 0, // getCurrentType()
+          name: frame.name,
+          address: frame.address,
+          period: frame.period,
+          amount: frame.amount
+        })
       }
     })
+    return cases
+  }
 
-    console.log(cases)
-
+  function ajaxSendCases() {
     ajaxSetup()
 
     $.ajax({
-      url: "{% url 'api:api' %}",
+      url: 'http://82.146.38.127:5000/launch/',
       type: 'post',
-      dataType : "json",
-      data: {
-        cases: cases
-      }
+      contentType: 'application/json; charset=utf8',
+      dataType : 'json',
+      data: JSON.stringify(getCurrentCasesData())
     })
 
+  }
+
+  function createWebSocket() {
+    let socket = new WebSocket("ws://82.146.38.127:5000/ws/connect");
+
+    socket.onopen = (e) => {
+      alert("[open] Соединение установлено. Отправляем данные на сервер");
+      socket.send("{{ token }}");
+    };
+
+    socket.onmessage = async (event) => {
+      const text = await event.data.text();
+      document.getElementById('webSocketImage').src = `data:image/png;base64,${text}`
+    };
+
+    socket.onclose = (event) => {
+      if (event.wasClean) {
+        alert(`[close] Соединение закрыто чисто, код=${event.code} причина=${event.reason}`);
+      } else {
+        // например, сервер убил процесс или сеть недоступна
+        // обычно в этом случае event.code 1006
+        alert('[close] Соединение прервано');
+      }
+    };
+
+    socket.onerror = (error) => {
+      alert(`[error]`);
+    };
   }
 
   function update_document_preview(el) {

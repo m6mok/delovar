@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Профиль
+{% endblock %}
+
+{% block head %}<style>
+  .ui-autocomplete.dropdown-menu {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .ui-autocomplete.dropdown-menu .dropdown-item {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s;
+  }
+
+  .ui-autocomplete.dropdown-menu .dropdown-item:last-child {
+    border-bottom: none;
+  }
+
+  .ui-autocomplete.dropdown-menu .dropdown-item:hover {
+    background-color: #f8f9fa;
+  }
+
+  #search-input:hover {
+    cursor: text;
+  }
+
+  .ui-helper-hidden-accessible {
+    display: none;
+  }
+</style>{% endblock %}
+
+{% block body %}<div class="container p-3">
+  <h3 class="text-white">Профиль {{ request.user }}</h3>
+  <a href="{% url 'processor:new' %}" class="btn btn-success w-100 mb-3">
+    Новое Дело
+  </a>
+  <form id="search-form" method="GET">
+    <div class="input-group">
+      <input type="text" id="search-input" name="q" class="form-control" placeholder="Найти..." value="{{ q }}">
+      <button type="submit" class="btn btn-primary">Поиск</button>
+    </div>
+  </form>
+  <div id="search-results"></div>
+  {% for case in cases %}
+    <div class="card m-5 mb-3 color-y">
+      <div class="card-body row row-cols-2">
+        {% for field in case %}
+          <div class="col"><strong>{{ field.label }}</strong>: {{ field.value }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  {% empty %}
+    <div class="py-3">
+      <h2 class="text-white">
+        Дел по запросу не найдено
+      </h2>
+    </div>
+  {% endfor %}
+</div>{% endblock %}
+
+{% block scripts %}<script>
+  $(() => {
+    var searchInput = $("#search-input");
+    var searchResults = $("#search-results");
+
+    searchInput.autocomplete({
+      source: "{% url 'processor:search' %}",
+      minLength: 2
+    }).autocomplete("instance")._renderItem = function(ul, item) {
+      return $('<li>')
+        .append(
+          $('<div>', {
+            class: 'dropdown-item',
+            text: item.label,
+            click: () => {
+              window.location.href = "/auth/edit/" + item.value + "/";
+            }
+          })
+        )
+        .appendTo(ul);
+    };
+
+    // Настройте стили для выпадающего списка
+    searchInput.autocomplete("instance")._renderMenu = function(ul, items) {
+      ul.addClass("dropdown-menu");
+      console.log(items)
+      var that = this;
+      $.each(items, (index, item) => {
+        console.log(item)
+        that._renderItem(ul, item);
+      });
+    };
+
+    // Обработчик события фокуса для активации поиска
+    searchInput.on("focus", () => {
+      searchInput.autocomplete("search");
+    });
+});
+</script>{% endblock %}
