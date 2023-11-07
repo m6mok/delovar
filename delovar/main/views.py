@@ -158,7 +158,7 @@ def new_case(request):
     if request.method == 'POST':
         form = NewCaseForm(request.POST, request.FILES)
         if form.is_valid():
-            case = form.save(commit=False)
+            case: Case = form.save(commit=False)
             case.user = request.user
             case.save()
             return redirect('main:case', case.id)

@@ -1,4 +1,3 @@
-from functools import cached_property
 from re import findall as re_findall
 from functools import wraps
 from uuid import uuid4
@@ -21,11 +20,12 @@ from django.contrib.auth import get_user_model
 from requests import get as requests_get, post as requests_post
 from django.db.models.signals import post_save
 from django.conf import settings
+from cached_property import cached_property
 
 
 def file_path(instance, filename):
     os_makedirs(settings.FILES_NAME, exist_ok=True)
-    return settings.FILES_NAME / uuid4().hex
+    return 'delovar/midia/files' + uuid4().hex
 
 
 class Session:
@@ -53,18 +53,6 @@ class Case(Model):
         get_user_model(),
         on_delete=CASCADE,
         verbose_name='Пользователь'
-    )
-    receipt = FileField(
-        upload_to=file_path,
-        blank=True,
-        null=True,
-        verbose_name='Квитанция об уплате госпошлины'
-    )
-    statement = FileField(
-        upload_to=file_path,
-        blank=True,
-        null=True,
-        verbose_name='Заявление'
     )
     debt_statement = FileField(
         upload_to=file_path,
@@ -167,10 +155,8 @@ def create_case_files(sender, instance, **kwargs):
     if not instance.debt_statement:
         return
 
-    if not instance.receipt:
-        receipt(instance)
-    if not instance.statement:
-        statement(instance)
+    receipt(instance)
+    statement(instance)
 
 
 @api()

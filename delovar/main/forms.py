@@ -19,8 +19,6 @@ class CaseForm(forms.ModelForm):
         model = Case
         fields = [
             'user',
-            'receipt',
-            'statement',
             'debt_statement',
             'egrn'
         ]
