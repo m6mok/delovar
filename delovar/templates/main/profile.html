@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Профиль пользователя
+{% endblock %}
+
+{% block head %}<style>
+
+</style>{% endblock %}
+
+{% block body %}<div class="container p-3">
+  <h3 class="text-white">Профиль пользователя</h3>
+  <div class="card mx-lg-5 mb-3 color-y">
+    <div class="card-header p-3">
+      <h3 class="m-0 p-0">Документы</h3>
+    </div>
+    <div class="card-body">
+      <form method="post" id="form" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for error in form.non_field_errors %}
+          <div class="bg-danger p-3 mb-3 text-white rounded-3">
+            {{ error }}
+          </div>
+        {% endfor %}
+        {% if error_message %}
+          <div class="bg-warning p-3 mb-3 text-white rounded-3">
+            {{ error_message }}
+          </div>
+        {% endif %}
+        {% for field in form %}
+          {% for error in field.errors %}
+            <div class="bg-danger p-3 mb-3 text-white rounded-3">
+              <strong>{{ field.label }}</strong>: {{ error }}
+            </div>
+          {% endfor %}
+        {% endfor %}
+        <div class="row row-cols-1 row-cols-lg-2">
+          <div class="col row">
+            <div class="col-12">
+              <strong>Договор управления МКД</strong>
+              <a class="h5 text-black text-decoration-none">
+                {% if user.mkd %}✅{% else %}❌{% endif %}
+              </a>
+            </div>
+            {% if not user.mkd %}<div class="col-12 p-1">
+              {{ form.mkd }}
+            </div>{% endif %}
+          </div>
+          <div class="col row">
+            <div class="col-12">
+              <strong>Выписка из ЕГРЮЛ</strong>
+              <a class="h5 text-black text-decoration-none">
+                {% if user.egrul %}✅{% else %}❌{% endif %}
+              </a>
+            </div>
+            {% if not user.egrul %}<div class="col-12 p-1">
+              {{ form.egrul }}
+            </div>{% endif %}
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="card-footer text-end">
+      <button class="btn btn-primary" onclick="$('#form').submit();">Сохранить</button>
+    </div>
+  </div>
+  <h3 class="text-white">Дела пользователя</h3>
+  <div>
+    <a href="{% url 'main:new_case' %}" class="btn btn-success mb-3">
+      Новое дело
+    </a>
+  </div>
+  {% for case in cases %}<div class="card mx-lg-5 mb-3 color-y">
+    <div class="card-header text-center p-3">
+      <h3 class="m-0 p-0">{{ case }}</h3>
+    </div>
+    <div class="card-body row row-cols-1 row-cols-lg-2">
+      <div class="col row align-items-center justify-content-end">
+        <div class="col"><strong>Создано</strong></div>
+        <div class="col-8 text-end">{{ case.created_at }}</div>
+      </div>
+      <div class="col"></div>
+      <div class="col row align-items-center">
+        <div class="col"><strong>Квитанция об уплате госпошлины</strong></div>
+        <div class="col-1 text-end">
+          <a class="h5 text-black text-decoration-none">
+            {% if case.receipt %}✅{% else %}⏳{% endif %}
+          </a>
+        </div>
+      </div>
+      <div class="col row align-items-center">
+        <div class="col"><strong>Заявление</strong></div>
+        <div class="col-1 text-end">
+          <a class="h5 text-black text-decoration-none">
+            {% if case.statement %}✅{% else %}⏳{% endif %}
+          </a>
+        </div>
+      </div>
+      <div class="col row align-items-center">
+        <div class="col"><strong>Договор управления МКД</strong></div>
+        <div class="col-1 text-end">
+          <a class="h5 text-black text-decoration-none" href="#form">
+            {% if case.user.mkd %}✅{% else %}❌{% endif %}
+          </a>
+        </div>
+      </div>
+      <div class="col row align-items-center">
+        <div class="col"><strong>Выписка из ЕГРЮЛ</strong></div>
+        <div class="col-1 text-end">
+          <a class="h5 text-black text-decoration-none" href="#form">
+            {% if case.user.egrul %}✅{% else %}❌{% endif %}
+          </a>
+        </div>
+      </div>
+      <div class="col row align-items-center">
+        <div class="col"><strong>Расчеты по задолженности</strong></div>
+        <div class="col-1 text-end">
+          <a class="h5 text-black text-decoration-none">
+            {% if case.debt_statement %}✅{% else %}❌{% endif %}
+          </a>
+        </div>
+      </div>
+      <div class="col row align-items-center">
+        <div class="col"><strong>Выписки из ЕГРН</strong></div>
+        <div class="col-1 text-end">
+          <a class="h5 text-black text-decoration-none">
+            {% if case.egrn %}✅{% else %}❌{% endif %}
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col col-12">
+      <a href="{% url 'main:case' case.pk %}" class="btn btn-primary w-100">Подробнее</a>
+    </div>
+  </div>{% endfor %}
+</div>{% endblock %}

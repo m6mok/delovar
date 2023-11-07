@@ -12,6 +12,6 @@ urlpatterns = [
     path('search/', views.user_search, name='search'),
     path('register/', views.register_user, name='register'),
     path('logout/', LogoutView.as_view(next_page='main:index'), name='logout'),
-    path('edit/<int:pk>/', views.edit_user, name='edit'),
+    path('edit/<str:pk>/', views.edit_user, name='edit'),
     path('password-reset/', views.password_reset, name='password_reset'),
 ]

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Дело {{ case.pk }}
+{% endblock %}
+
+{% block body %}<div class="container p-3">
+  <div class="card m-5 color-y">
+    <div class="card-header color-y">
+      <h3 class="m-0">Дело</h3><span class="muted text-end">{{ case }}</span>
+    </div>
+    <div class="card-body">
+      <form method="post" id="form" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for error in form.non_field_errors %}
+          <div class="bg-danger p-3 mb-3 text-white rounded-3">
+            {{ error }}
+          </div>
+        {% endfor %}
+        {% if error_message %}
+          <div class="bg-warning p-3 mb-3 text-white rounded-3">
+            {{ error_message }}
+          </div>
+        {% endif %}
+        {% for field in form %}
+          {% for error in field.errors %}
+            <div class="bg-danger p-3 mb-3 text-white rounded-3">
+              <strong>{{ field.label }}</strong>: {{ error }}
+            </div>
+          {% endfor %}
+        {% endfor %}
+        <div class="row row-cols-1 row-cols-lg-2">
+          <div class="col row align-items-center justify-content-end">
+            <div class="col"><strong>Пользователь</strong></div>
+            <div class="col-8 text-end"><a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">{{ case.user }}</a></div>
+          </div>
+          <div class="col row align-items-center justify-content-end">
+            <div class="col"><strong>Создано</strong></div>
+            <div class="col-8 text-end">{{ case.created_at }}</div>
+          </div>
+          <div class="col row align-items-center">
+            <div class="col"><strong>Квитанция об уплате госпошлины</strong></div>
+            <div class="col-1 text-end">
+              <a id="btn-receipt" class="h5 text-black text-decoration-none" href="#">
+                {% if receipt %}✅{% else %}⏳{% endif %}
+              </a>
+            </div>
+          </div>
+          <div class="col row align-items-center">
+            <div class="col"><strong>Заявление</strong></div>
+            <div class="col-1 text-end">
+              <a id="btn-statement" class="h5 text-black text-decoration-none" href="#">
+                {% if statement %}✅{% else %}⏳{% endif %}
+              </a>
+            </div>
+          </div>
+          <div class="col row align-items-center">
+            <div class="col"><strong>Договор управления МКД</strong></div>
+            <div class="col-1 text-end">
+              <a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">
+                {% if case.user.mkd %}✅{% else %}❌{% endif %}
+              </a>
+            </div>
+          </div>
+          <div class="col row align-items-center">
+            <div class="col"><strong>Выписка из ЕГРЮЛ</strong></div>
+            <div class="col-1 text-end">
+              <a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">
+                {% if case.user.egrul %}✅{% else %}❌{% endif %}
+              </a>
+            </div>
+          </div>
+          <div class="col row">
+            <div class="col-12">
+              <strong>Расчеты по задолженности</strong>
+              <a class="h5 text-black text-decoration-none">
+                {% if case.debt_statement %}✅{% else %}❌{% endif %}
+              </a>
+            </div>
+            {% if not case.debt_statement %}<div class="col-12 p-1">
+              {{ form.debt_statement }}
+            </div>{% endif %}
+          </div>
+          <div class="col row">
+            <div class="col-12">
+              <strong>Выписки из ЕГРН</strong>
+              <a class="h5 text-black text-decoration-none">
+                {% if case.egrn %}✅{% else %}❌{% endif %}
+              </a>
+            </div>
+            {% if not case.egrn %}<div class="col-12 p-1">
+              {{ form.egrn }}
+            </div>{% endif %}
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="card-footer text-end">
+      <div class="row row-cols-1 row-cols-lg-3 justify-content-end">
+        {% if not case.debt_statement or not case.egrn %}<div class="col col-lg-2 mb-3 mb-lg-0">
+          <button class="btn btn-primary" onclick="$('#form').submit();">Сохранить</button>
+        </div>{% endif %}
+        <div class="col col-lg-2 mb-3 mb-lg-0">
+          <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            Удалить
+          </button>
+        </div>
+        <div class="col col-lg-2 mb-3 mb-lg-0">
+          <a href="{% url 'main:create_document_pack' case.id %}" class="btn btn-success"{% if not receipt or not statement or not case.debt_statement or not case.egrn or not case.user.mkd or not case.user.egrul %}  disabled{% endif %}>
+            Выгрузить
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content color-y">
+        <div class="modal-header color-y">
+          <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body text-white">
+          Вы уверены, что хотите удалить Дело?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>{% endblock %}
+
+{% block scripts %}
+<script>
+  $(document).ready(function() {
+    const
+      caseId = '{{ case.id }}',
+      receipt = $('#btn-receipt'),
+      statement = $('#btn-statement'),
+      saveBtn = $('#saveBtn'),
+      deleteBtn = $('#deleteBtn');
+
+    receipt.click(updateReceipt)
+    statement.click(updateStatement)
+
+    function sendPostRequest(url, callback) {
+      $.ajax({
+        type: 'POST',
+        url: url,
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        success: callback
+      });
+    }
+
+    function updateReceipt() {
+      receipt.text('❓️');
+      sendPostRequest("{% url 'main:check_receipt' case.id %}", function(response) {
+        if (response.success) {
+          receipt.text('✅');
+        } else {
+          receipt.text('⏳');
+        }
+      });
+    }
+
+    function updateStatement() {
+      statement.text('❓️');
+      sendPostRequest("{% url 'main:check_statement' case.id %}", function(response) {
+        if (response.success) {
+          statement.text('✅');
+        } else {
+          statement.text('⏳');
+        }
+      });
+    }
+
+    setInterval(() => {updateReceipt(); updateStatement()}, 10000);
+
+    $('#confirmDeleteBtn').click(function() {
+      window.location.href = '{% url "main:delete_case" case.id %}';
+    });
+  });
+</script>
+{% endblock %}

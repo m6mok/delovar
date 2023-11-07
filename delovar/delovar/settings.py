@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
-    'processor.apps.ProcessorConfig',
     'user.apps.UserConfig'
 ]
 
@@ -81,13 +80,16 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
 USE_TZ = True
 
 STATIC_URL = 'static/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -100,8 +102,28 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
 SESSION_COOKIE_NAME = 'session'
 
-SESSION_COOKIE_AGE = 86400  # Например, 1 день
+SESSION_COOKIE_AGE = 86400  # 1 day
 
 SESSION_SAVE_EVERY_REQUEST = True  # Обновление сессии при каждом запросе
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Сессия сохраняется после закрытия браузера
+
+
+FILES_NAME = MEDIA_ROOT / 'files'
+
+
+API_ACCESS_TOKEN = 'bw2dnkohQJp3ib-GoefPi9/deczuxPPYDrIb85g0uxmpy7al4odokpvHi63OAoWkGCGKbzjp/Gm=BlheX7Y2eruwLOftp4QrMpvsfLfF7l7dJ9GWCLNZBlFi=uHaeFQqHsrgG6nEA8u85E6gKGr7hEswfmWhdGO=Ct!hgm/g1-ANK!v0XCu/TpimRo=S54YFjWaum5?586BHd9T/OhvV3Tym01Ln5HhSmAQjRMYlBdjy=Fo1FHIyFqNEhJlD39xw'
+API_URL = 'http://127.0.0.2:5000/api/v1/'
+API_URL_DOCUMENT = API_URL + 'document/'
+API_URL_CHECK = API_URL + 'check/'
+
+API_DEFAULT_SETTINGS = {
+    "timeout_page": 5,
+    "timing_page": 5,
+    "timeout_movement": .5,
+    "timing_movement": .5
+}
+API_MOVEMENT_RECEIPT = {'movements': 'receipt'}
+API_MOVEMENT_STATEMENT_DISTRICT = {'movements': 'statement_district'}
+API_MOVEMENT_STATEMENT_MAGISTRATE = {'movements': 'statement_magistrate'}
+API_MOVEMENT_LAWSUIT = {'movements': 'lawsuit'}

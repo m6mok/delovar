@@ -6,20 +6,26 @@ from .models import CustomUser
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ['inn', 'email', 'label', 'address', 'leader_name', 'is_active', 'is_staff']
+    list_display = ['inn', 'label', 'address', 'representative_person', 'is_active', 'is_staff']
     fieldsets = (
-        (None, {'fields': ('inn', 'email', 'password')}),
-        ('Personal Info', {'fields': ('label', 'address', 'leader_name')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-        ('Important dates', {'fields': ('last_login',)}),
+        (None, {'fields': ('inn', 'ogrn', 'kpp')}),
+        ('Персональная информация', {'fields': (
+            'label',
+            'address',
+            'representative_person'
+        )}),
+        ('Файлы', {'fields': ('mkd', 'egrul')}),
+        ('Доступы', {'fields': ('is_active', 'is_staff')}),
+        ('Пароль', {'fields': ('password',)})
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('inn', 'email', 'password1', 'password2'),
+            'fields': ('inn', 'password1', 'password2'),
         }),
     )
-    search_fields = ('inn', 'email', 'label', 'leader_name')
+    search_fields = ('inn', 'label', 'representative_person')
     ordering = ('inn',)
+
 
 admin.site.register(CustomUser, CustomUserAdmin)

@@ -5,7 +5,7 @@
     </a></h3>
   </li>
   <li class="nav-item">
-    <h3 class="text-white"><a href="{% url 'processor:cases' %}" class="nav-link{% if request.resolver_match.app_name == 'processor' and request.resolver_match.url_name == 'cases' %} active{% endif %}">
+    <h3 class="text-white"><a href="{% url 'main:cases' %}" class="nav-link{% if request.resolver_match.app_name == 'main' and request.resolver_match.url_name == 'cases' %} active{% endif %}">
       Список Дел
     </a></h3>
   </li>

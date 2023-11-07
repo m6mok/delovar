@@ -7,11 +7,26 @@ from django.urls import reverse_lazy
 
 from .models import CustomUser
 from .forms import (
-    CustomUserCreationForm,
     CustomUserForm,
     PasswordResetForm
 )
 from .decorators import admin_required
+
+
+def user_data(user):
+    for name in (
+        'id',
+        'inn',
+        'label',
+        'address',
+        'representative_person',
+        'is_active',
+        'is_staff'
+    ):
+        yield {
+            'label': CustomUser._meta.get_field(name).verbose_name,
+            'value': user.__dict__[name]
+        } 
 
 
 @admin_required
@@ -22,27 +37,16 @@ def user_list(request):
     if query:
         users = users.filter(
             Q(inn__icontains=query) |
-            Q(email__icontains=query) |
             Q(label__icontains=query) |
             Q(address__icontains=query) |
             Q(leader_name__icontains=query)
         )
 
-    users = [
-        [{
-            'label': CustomUser._meta.get_field(name).verbose_name,
-            'value': user.__dict__[name]
-        } for name in (
-            'id',
-            'inn',
-            'email',
-            'label',
-            'address',
-            'leader_name',
-            'is_active',
-            'is_staff'
-        )] for user in users
-    ]
+    users = [{
+        'pk': user.pk,
+        'name': str(user),
+        'fields': user_data(user)
+    } for user in users]
 
     return render(
         request,
@@ -59,7 +63,6 @@ def user_search(request):
     query = request.GET.get('term', '')
     users = CustomUser.objects.filter(
         Q(inn__icontains=query) |
-        Q(email__icontains=query) |
         Q(label__icontains=query) |
         Q(address__icontains=query) |
         Q(leader_name__icontains=query)
@@ -76,7 +79,7 @@ def register_user(request):
     if request.method == 'POST':
         form = CustomUserForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            form.save()
             return redirect(reverse_lazy('user:list'))
     else:
         form = CustomUserForm()
@@ -91,7 +94,7 @@ def edit_user(request, pk):
         form = CustomUserForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
-            return redirect('list')  # Перенаправление на список пользователей
+            return redirect(reverse_lazy('user:list'))  # Перенаправление на список пользователей
     else:
         form = CustomUserForm(instance=user)
     

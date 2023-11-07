@@ -1,38 +1,28 @@
 <header class="border-bottom py-1 py-lg-3 color-y">
-  <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-around container">
-    <a href="{% url 'main:index' %}" class="d-flex align-items-center mb-2 mb-lg-0 me-3 text-dark text-decoration-none">
+  <div class="d-flex align-items-center container">
+    <a href="{% url 'main:index' %}" class="d-flex align-items-center mb-3 mb-lg-0 me-3 text-dark text-decoration-none">
       {% if user.is_authenticated and user.is_staff %}
-        <div class="text-white bg-warning rounded p-1 px-3 d-flex align-items-center">
-          {% with svg_width='3rem' svg_height='3rem' svg_color='white' %}
+        <div class="p-1 px-3 mt-3 d-flex align-items-center">
+          {% with svg_width='3rem' svg_height='3rem' svg_color='#7851A9' %}
             {% include 'svg/crown.svg' %}
           {% endwith %}
-          <logotitle class="text-white ms-2">Деловар</logotitle>
+          <logotitle class="ms-2">Деловар</logotitle>
         </div>
       {% else %}
         {% with svg_width='3rem' svg_height='3rem' %}
           {% include 'svg/logo.svg' %}
         {% endwith %}
-        <logotitle class="ms-2">Деловар</logotitle>
+        <logotitle class="ms-2 my-3">Деловар</logotitle>
       {% endif %}
     </a>
-    <div class="col me-2 text-end">
+    <div class="col m-0 me-lg-2 mb-2 text-center text-md-end">
       {% if user.is_authenticated %}
         <div class="btn-group">
-          {% if user.is_staff %}
-          <div class="btn btn-warning text-white">
-            <a href="{% url 'user:list' %}" class="nav-link{% if request.resolver_match.app_name == 'user' and request.resolver_match.url_name == 'list' %} active{% endif %}">
-              Пользователи
+          <div class="btn btn-primary text-white">
+            <a href="{% url 'main:profile' %}" class="nav-link">
+              Профиль
             </a>
           </div>
-          <div class="btn btn-warning text-white">
-            <a href="{% url 'processor:cases' %}" class="nav-link{% if request.resolver_match.app_name == 'processor' and request.resolver_match.url_name == 'cases' %} active{% endif %}">
-              Дела
-            </a>
-          </div>
-          {% endif %}
-          <a href="{% url 'processor:profile' %}" class="btn btn-primary">
-            Аккаунт
-          </a>
           <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item text-danger" href="{% url 'user:logout' %}">Выйти</a></li>

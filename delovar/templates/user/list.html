@@ -36,9 +36,9 @@
 </style>{% endblock %}
 
 {% block body %}<div class="container p-3">
-  <h3 class="text-white">Список пользователей</h3>
+  <h3 class="text-white">Все пользователи</h3>
   <a href="{% url 'user:register' %}" class="btn btn-success w-100 mb-3">
-    Добавить пользователя
+    Добавить
   </a>
   <form id="search-form" method="GET">
     <div class="input-group">
@@ -49,13 +49,16 @@
   <div id="search-results"></div>
   {% for user in users %}
     <div class="card m-5 mb-3 color-y">
+      <div class="card-header p-3">
+        <h3 class="m-0">{{ user.name }}</h3>
+      </div>
       <div class="card-body row row-cols-2">
-        {% for field in user %}
+        {% for field in user.fields %}
           <div class="col"><strong>{{ field.label }}</strong>: {{ field.value }}</div>
         {% endfor %}
       </div>
       <div class="col col-12">
-        <a href="{% url 'user:edit' user.0.value %}" class="btn btn-primary w-100">Редактировать</a>
+        <a href="{% url 'user:edit' user.pk %}" class="btn btn-primary w-100">Редактировать</a>
       </div>
     </div>
   {% empty %}
@@ -71,6 +74,9 @@
   $(() => {
     var searchInput = $("#search-input");
     var searchResults = $("#search-results");
+
+    const queryParams = new URLSearchParams(window.location.search);
+    searchInput.val(queryParams.get("q"))
 
     searchInput.autocomplete({
       source: "{% url 'user:search' %}",

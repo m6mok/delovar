@@ -1,11 +1,30 @@
 from django import forms
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import (
     UserCreationForm,
     AuthenticationForm
 )
+from django.core.validators import FileExtensionValidator
+from django.contrib.auth import authenticate, login
 
 from .models import CustomUser
+
+
+USER_FIELDS = [
+    'inn',
+    'ogrn',
+    'kpp',
+    'label',
+    'address',
+    'representative_person',
+    'mkd',
+    'egrul'
+]
+
+
+DOCUMENT_FIELDS = [
+    'mkd',
+    'egrul'
+]
 
 
 class CustomAuthenticationForm(AuthenticationForm):
@@ -62,20 +81,35 @@ class CustomAuthenticationForm(AuthenticationForm):
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ['inn', 'email', 'label', 'address', 'leader_name']
+        fields = USER_FIELDS
 
 
 class CustomUserForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for name in ('inn', 'email', 'label', 'address', 'leader_name'):
+        for name in USER_FIELDS:
             self.fields[name].widget.attrs.update({
                 'class': 'form-control'
             })
 
     class Meta:
         model = CustomUser
-        fields = ['inn', 'email', 'label', 'address', 'leader_name']
+        fields = USER_FIELDS
+    
+
+class CustomUserDocumentsForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in DOCUMENT_FIELDS:
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control'
+            })
+            self.fields[name].validators.append(FileExtensionValidator(['pdf']))
+            self.fields[name].required = False
+
+    class Meta:
+        model = CustomUser
+        fields = DOCUMENT_FIELDS
 
 
 class PasswordResetForm(forms.Form):
