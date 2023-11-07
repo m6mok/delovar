@@ -3,7 +3,6 @@ from os import makedirs as os_makedirs
 
 from django.db import models
 from django.core.validators import (
-    FileExtensionValidator,
     MinLengthValidator,
     MaxLengthValidator
 )

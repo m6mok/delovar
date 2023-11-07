@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-n07hbkldddpvblp8=4#e8o2r6#gwxq%g&hohmx0c^do96jo6ag'
 
 DEBUG = True
+ON_AIR = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -127,3 +128,23 @@ API_MOVEMENT_RECEIPT = {'movements': 'receipt'}
 API_MOVEMENT_STATEMENT_DISTRICT = {'movements': 'statement_district'}
 API_MOVEMENT_STATEMENT_MAGISTRATE = {'movements': 'statement_magistrate'}
 API_MOVEMENT_LAWSUIT = {'movements': 'lawsuit'}
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

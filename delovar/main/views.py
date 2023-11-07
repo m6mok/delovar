@@ -1,6 +1,5 @@
 from zipfile import ZipFile
 from io import BytesIO
-from uuid import uuid4
 from os.path import exists as os_path_exists
 from os import remove as os_remove
 
