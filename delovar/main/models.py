@@ -1,5 +1,4 @@
 from re import findall as re_findall
-from functools import wraps
 from uuid import uuid4
 from os import makedirs as os_makedirs
 from os.path import exists as os_path_exists
@@ -10,41 +9,19 @@ from django.db.models import (
     FileField,
     DateTimeField,
     UUIDField,
+    CharField,
     CASCADE
 )
-from django.utils.timezone import now
 from PyPDF2 import PdfReader
-from requests.exceptions import ConnectionError as RequestsConnectionError
-from django.dispatch import receiver
-from django.contrib.auth import get_user_model
-from requests import get as requests_get, post as requests_post
-from django.db.models.signals import post_save
-from django.conf import settings
 from cached_property import cached_property
+from django.contrib.auth import get_user_model
+from django.utils.timezone import now
+from django.conf import settings
 
 
 def file_path(instance, filename):
     os_makedirs(settings.FILES_NAME, exist_ok=True)
     return 'files/' + uuid4().hex
-
-
-class Session:
-    def __init__(self, is_active: bool, id: int = None):
-        self.is_active = is_active
-        self.id = id
-
-    def __str__(self) -> str:
-        return f'Сессия({self.number})'
-
-    def check(self) -> bool:
-        response = requests_get(
-            settings.API_URL_CHECK,
-            json={'session_id': self.id},
-            headers={'x-access-token': settings.API_ACCESS_TOKEN}
-        )
-        data = response.json()
-        
-        return data['result']
 
 
 class Case(Model):
@@ -70,6 +47,18 @@ class Case(Model):
         verbose_name='Дата создания'
     )
 
+    TEMPLATE_CHOICES = (
+        ('statement_magistrate', 'Приказ мировой суд'),
+        ('statement_district', 'Приказ районный суд'),
+        ('statement_lowsuit_district', 'Иск районный суд'),
+    )
+    template = CharField(
+        max_length=50,
+        choices=TEMPLATE_CHOICES,
+        default='statement_magistrate',
+        verbose_name='Шаблон'
+    )
+
     def __str__(self) -> bool:
         data = self.debt_statement_data
         def shorted_name(name: str) -> str:
@@ -78,7 +67,11 @@ class Case(Model):
             surname, name, fathername, *_ = name.split()
             return f'{surname} {name[0]}. {fathername[0]}.'
         return ' '.join(
-            field for field in (shorted_name(data.get('name')), data.get('period'))
+            field for field in (
+                self.get_template_display(),
+                shorted_name(data.get('name')),
+                data.get('period')
+            )
             if field
         )
 
@@ -112,93 +105,52 @@ class Case(Model):
             text += pdf_reader.pages[-1].extract_text()
 
         return {
-            'period': re_findall('за\s(?:(.*))\n', text)[0],
-            'org_inn': re_findall('ИНН\s(?:(.*))\n', text)[0],
-            'address': re_findall('Адрес:\s(?:(.*))\n', text)[0],
-            'name': re_findall('Ответственный.*:(.*)\n', text)[0],
-            'date': re_findall('Долг\sна\s([0-9.]*)\s', text)[0],
-            'amount': float(re_findall('составляет\s([0-9., ]*) руб.', text)[0].replace(' ', '').replace(',', '.'))
+            'period': re_findall(r'за\s(?:(.*))\n', text)[0],
+            'org_inn': re_findall(r'ИНН\s(?:(.*))\n', text)[0],
+            'address': re_findall(r'Адрес:\s(?:(.*))\n', text)[0],
+            'name': re_findall(r'Ответственный.*:(.*)\n', text)[0],
+            'date': re_findall(r'Долг\sна\s([0-9.]*)\s', text)[0],
+            'amount': float(re_findall(r'составляет\s([0-9., ]*) руб.', text)[0].replace(' ', '').replace(',', '.'))
         }
 
+    @cached_property
+    def receipt_data(self):
+        data = self.get_user_data()
+        data.update(self.debt_statement_data)
+        amount = self.amount
 
-def api():
-    def decorator(func):
-        @wraps(func)
-        def wrapper(case):
-            _settings, data = func(case)
+        _settings: dict = settings.API_DEFAULT_SETTINGS
 
-            json_data = {
-                'settings': _settings,
-                'data': data
-            }
+        if amount > 500000:
+            _settings.update(settings.API_MOVEMENTS_RECEIPT_DISTRICT)
+        elif amount > 50000:
+            _settings.update(settings.API_MOVEMENTS_RECEIPT_DISTRICT)
+        else:
+            _settings.update(settings.API_MOVEMENTS_RECEIPT_MAGISTRATE)
 
-            try:
-                response = requests_post(
-                    settings.API_URL_DOCUMENT,
-                    json=json_data,
-                    headers={
-                        'x-access-token': settings.API_ACCESS_TOKEN
-                    }
-                )
-                if response.status_code == 200:
-                    ...
-            except RequestsConnectionError as rce:
-                print(f'''
-                    [Error] Failed to fetch data.
-                    : {rce}
-                ''')
-        return wrapper
-    return decorator
+        return data, _settings
 
+    @cached_property
+    def statement_data(self):
+        data = self.get_user_data()
+        data.update(self.debt_statement_data)
+        amount = self.amount
 
-@receiver(post_save, sender=Case)
-def create_case_files(sender, instance, **kwargs):
-    if not instance.debt_statement:
-        return
+        _settings: dict = settings.API_DEFAULT_SETTINGS
 
-    receipt(instance)
-    statement(instance)
+        if amount > 500000:
+            _settings.update(settings.API_MOVEMENTS_STATEMENT_LOWSUIT_DISTRICT)
+        elif amount > 50000:
+            _settings.update(settings.API_MOVEMENTS_STATEMENT_DISTRICT)
+        else:
+            _settings.update(settings.API_MOVEMENTS_STATEMENT_MAGISTRATE)
 
+        return data, _settings
 
-@api()
-def receipt(case: Case):
-    data = case.get_user_data()
-    data.update(case.debt_statement_data)
-
-    _settings: dict = settings.API_DEFAULT_SETTINGS
-    _settings.update(settings.API_MOVEMENT_RECEIPT)
-    _settings.update({'case_id': str(case.id)})
+    @cached_property
+    def get_egrn_data(self) -> dict:
+        return {}
     
-    return _settings, data
-
-
-@api()
-def statement(case: Case):
-    data = case.get_user_data()
-    data.update(case.debt_statement_data)
-    if case.egrn:
-        data.update(get_egrn_data(case.egrn.path))
-
-    amount = data.get('amount')
-    if not amount or not isinstance(amount, float):
-        raise ValueError('No amount in data')
-
-    org_inn = data.get('org_inn')
-    if org_inn != data['org_inn']:
-        raise ValueError('Wrong org_inn in data')
-
-    _settings: dict = settings.API_DEFAULT_SETTINGS
-    if data['amount'] > 500000:
-        _settings.update(settings.API_MOVEMENT_LOWSUIT)
-    elif data['amount'] > 50000:
-        _settings.update(settings.API_MOVEMENT_STATEMENT_DISTRICT)
-    else:
-        _settings.update(settings.API_MOVEMENT_STATEMENT_MAGISTRATE)
-    _settings.update({'case_id': str(case.id)})
-
-
-    return _settings, data
-
-
-def get_egrn_data(egrn_path: str) -> dict:
-    return {}
+    @cached_property
+    def amount(self) -> float:
+        return self.debt_statement_data['amount']

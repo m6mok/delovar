@@ -2,12 +2,12 @@
 {% load user_filters %}
 
 {% block title %}
-  Дело {{ case.pk }}
+  Дело
 {% endblock %}
 
 {% block body %}<div class="container p-3">
   <div class="card m-5 color-y">
-    <div class="card-header color-y">
+    <div class="card-header">
       <h3 class="m-0">Дело</h3><span class="muted text-end">{{ case }}</span>
     </div>
     <div class="card-body">
@@ -42,7 +42,7 @@
           <div class="col row align-items-end">
             <div class="col"><strong>Квитанция об уплате госпошлины</strong></div>
             <div class="col-1 text-end">
-              <a id="btn-receipt" class="h5 text-black text-decoration-none" href="#">
+              <a id="receipt_button" class="h5 text-black text-decoration-none" href="#">
                 {% if receipt %}✅{% else %}⏳{% endif %}
               </a>
             </div>
@@ -50,7 +50,7 @@
           <div class="col row align-items-end">
             <div class="col"><strong>Заявление</strong></div>
             <div class="col-1 text-end">
-              <a id="btn-statement" class="h5 text-black text-decoration-none" href="#">
+              <a id="statement_button" class="h5 text-black text-decoration-none" href="#">
                 {% if statement %}✅{% else %}⏳{% endif %}
               </a>
             </div>
@@ -76,7 +76,7 @@
               <strong>Расчеты по задолженности</strong>
             </div>
             {% if case.debt_statement %}<div class="col col-lg-3 text-end">
-              <a href="#" onclick="$('#form_debt_statement').prop('hidden', false); $(this).prop('hidden', true)">
+              <a class="text-black" href="#" onclick="$('#form_debt_statement').prop('hidden', false); $(this).prop('hidden', true)">
                 изменить
               </a>
             </div>{% endif %}
@@ -86,7 +86,7 @@
               </a>
             </div>
             <div id="form_debt_statement" class="col-12 p-1"{% if case.debt_statement %} hidden{% endif %}>
-              <input type="file" name="debt_statement" class="form-control" id="id_debt_statement">
+              <input type="file" name="debt_statement" class="form-control" id="id_debt_statement" accept="application/pdf">
             </div>
           </div>
           <div class="col row align-items-top">
@@ -94,7 +94,7 @@
               <strong>Выписки из ЕГРН</strong>
             </div>
             {% if case.egrn %}<div class="col col-lg-3 text-end">
-              <a href="#" onclick="$('#form_egrn').prop('hidden', false); $(this).prop('hidden', true)">
+              <a class="text-black" href="#" onclick="$('#form_egrn').prop('hidden', false); $(this).prop('hidden', true)">
                 изменить
               </a>
             </div>{% endif %}
@@ -104,28 +104,22 @@
               </a>
             </div>
             <div id="form_egrn" class="col-12 p-1"{% if case.egrn %} hidden{% endif %}>
-              <input type="file" name="egrn" class="form-control" id="id_egrn">
+              <input type="file" name="egrn" class="form-control" id="id_egrn" accept="application/pdf">
             </div>
           </div>
         </div>
       </form>
     </div>
     <div class="card-footer text-end">
-      <div class="row row-cols-1 row-cols-lg-3 justify-content-end">
-        {% if not case.debt_statement or not case.egrn %}<div class="col col-lg-2 mb-3 mb-lg-0">
-          <button class="btn btn-primary" onclick="$('#form').submit();">Сохранить</button>
-        </div>{% endif %}
-        <div class="col col-lg-2 mb-3 mb-lg-0">
-          <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-            Удалить
-          </button>
-        </div>
-        <div class="col col-lg-2 mb-3 mb-lg-0">
-          <a href="{% url 'main:create_document_pack' case.id %}" class="btn btn-success"{% if not receipt or not statement or not case.debt_statement or not case.egrn or not case.user.mkd or not case.user.egrul %}  disabled{% endif %}>
-            Выгрузить
-          </a>
-        </div>
-      </div>
+      <button id="form_submit_button" class="btn btn-primary mb-1" onclick="$('#form').submit();">
+        Сохранить
+      </button>
+      <button type="button" class="btn btn-danger mb-1" data-bs-toggle="modal" data-bs-target="#deleteModal">
+        Удалить
+      </button>
+      <button id="upload_button" onclick="window.location.href = `{% url 'main:create_document_pack' case.id %}`" class="btn btn-success">
+        Выгрузить
+      </button>
     </div>
   </div>
   <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -140,7 +134,7 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-          <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Удалить</button>
+          <button type="button" class="btn btn-danger" id="confirm_delete_button">Удалить</button>
         </div>
       </div>
     </div>
@@ -149,16 +143,32 @@
 
 {% block scripts %}
 <script>
-  $(document).ready(function() {
-    const
-      caseId = '{{ case.id }}',
-      receipt = $('#btn-receipt'),
-      statement = $('#btn-statement'),
-      saveBtn = $('#saveBtn'),
-      deleteBtn = $('#deleteBtn');
+  var
+    debtStatement = '{{ case.debt_statement }}' != '',
+    egrn = '{{ case.egrn }}' != '';
+  const
+    receiptButton = $('#receipt_button'),
+    statementButton = $('#statement_button'),
+    formSubmitButton = $('#form_submit_button'),
+    confirmDeleteButton = $('#confirm_delete_button'),
+    uploadButton = $('#upload_button');
 
-    receipt.click(updateReceipt)
-    statement.click(updateStatement)
+  $(document).ready(() => {
+    formSubmitButton.prop('disabled', true)
+    uploadButton.prop('disabled', true)
+
+    $('#id_statement').change(function() {
+      debtStatement = $(this).val() != ''
+      formSubmitButton.prop('disabled', !(debtStatement && egrn))
+    })
+
+    $('#id_egrn').change(function() {
+      egrn = $(this).val() != ''
+      formSubmitButton.prop('disabled', !(debtStatement && egrn))
+    })
+
+    receiptButton.click(updateReceipt)
+    statementButton.click(updateStatement)
 
     function sendPostRequest(url, callback) {
       $.ajax({
@@ -172,31 +182,45 @@
     }
 
     function updateReceipt() {
-      receipt.text('❓️');
+      // receiptButton.text('❓️');
       sendPostRequest("{% url 'main:check_receipt' case.id %}", function(response) {
         if (response.success) {
-          receipt.text('✅');
+          receiptButton.text('✅');
         } else {
-          receipt.text('⏳');
+          receiptButton.text('⏳');
         }
-      });
+      })
     }
 
     function updateStatement() {
-      statement.text('❓️');
+      // statementButton.text('❓️');
       sendPostRequest("{% url 'main:check_statement' case.id %}", function(response) {
         if (response.success) {
-          statement.text('✅');
+          statementButton.text('✅')
         } else {
-          statement.text('⏳');
+          statementButton.text('⏳')
         }
+      })
+    }
+    
+    function updateUpload() {
+      // uploadButton.prop('disabled', true);
+      sendPostRequest("{% url 'main:check_upload' case.id %}", function(response) {
+        uploadButton.prop('disabled', !response.success);
       });
     }
 
-    setInterval(() => {updateReceipt(); updateStatement()}, 10000);
+    function updateAll() {
+      updateReceipt()
+      updateStatement()
+      updateUpload()
+    }
 
-    $('#confirmDeleteBtn').click(function() {
-      window.location.href = '{% url "main:delete_case" case.id %}';
+    updateAll()
+    setInterval(updateAll, 10000);
+
+    confirmDeleteButton.click(function() {
+      window.location.href = "{% url 'main:delete_case' case.id %}";
     });
   });
 </script>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  Профиль пользователя
+  Профиль
 {% endblock %}
 
 {% block head %}<style>
@@ -35,33 +35,47 @@
           {% endfor %}
         {% endfor %}
         <div class="row row-cols-1 row-cols-lg-2">
-          <div class="col row">
-            <div class="col-12">
+          <div class="col row align-items-top">
+            <div class="col">
               <strong>Договор управления МКД</strong>
+            </div>
+            {% if user.mkd %}<div class="col col-lg-3 text-end">
+              <a class="text-black" href="#" onclick="$('#form_mkd').prop('hidden', false); $(this).prop('hidden', true)">
+                изменить
+              </a>
+            </div>{% endif %}
+            <div class="col-1 text-end">
               <a class="h5 text-black text-decoration-none">
                 {% if user.mkd %}✅{% else %}❌{% endif %}
               </a>
             </div>
-            {% if not user.mkd %}<div class="col-12 p-1">
-              {{ form.mkd }}
-            </div>{% endif %}
+            <div id="form_mkd" class="col-12 p-1"{% if user.mkd %} hidden{% endif %}>
+              <input type="file" name="mkd" class="form-control" id="id_mkd" accept="application/pdf">
+            </div>
           </div>
-          <div class="col row">
-            <div class="col-12">
+          <div class="col row align-items-top">
+            <div class="col">
               <strong>Выписка из ЕГРЮЛ</strong>
+            </div>
+            {% if user.egrul %}<div class="col col-lg-3 text-end">
+              <a class="text-black" href="#" onclick="$('#form_egrul').prop('hidden', false); $(this).prop('hidden', true)">
+                изменить
+              </a>
+            </div>{% endif %}
+            <div class="col-1 text-end">
               <a class="h5 text-black text-decoration-none">
                 {% if user.egrul %}✅{% else %}❌{% endif %}
               </a>
             </div>
-            {% if not user.egrul %}<div class="col-12 p-1">
-              {{ form.egrul }}
-            </div>{% endif %}
+            <div id="form_egrul" class="col-12 p-1"{% if user.egrul %} hidden{% endif %}>
+              <input type="file" name="egrul" class="form-control" id="id_egrul" accept="application/pdf">
+            </div>
           </div>
         </div>
       </form>
     </div>
     <div class="card-footer text-end">
-      <button class="btn btn-primary" onclick="$('#form').submit();">Сохранить</button>
+      <button id="form_submit_button" class="btn btn-primary" onclick="$('#form').submit();">Сохранить</button>
     </div>
   </div>
   <h3 class="text-white">Дела пользователя</h3>
@@ -80,22 +94,6 @@
         <div class="col-8 text-end">{{ case.created_at|date:"d.m.Y H:i" }}</div>
       </div>
       <div class="col"></div>
-      <div class="col row align-items-center">
-        <div class="col"><strong>Квитанция об уплате госпошлины</strong></div>
-        <div class="col-1 text-end">
-          <a class="h5 text-black text-decoration-none">
-            {% if case.receipt %}✅{% else %}⏳{% endif %}
-          </a>
-        </div>
-      </div>
-      <div class="col row align-items-center">
-        <div class="col"><strong>Заявление</strong></div>
-        <div class="col-1 text-end">
-          <a class="h5 text-black text-decoration-none">
-            {% if case.statement %}✅{% else %}⏳{% endif %}
-          </a>
-        </div>
-      </div>
       <div class="col row align-items-center">
         <div class="col"><strong>Договор управления МКД</strong></div>
         <div class="col-1 text-end">
@@ -129,8 +127,30 @@
         </div>
       </div>
     </div>
-    <div class="col col-12">
+    <div class="card-footer">
       <a href="{% url 'main:case' case.pk %}" class="btn btn-primary w-100">Подробнее</a>
     </div>
   </div>{% endfor %}
 </div>{% endblock %}
+
+{% block scripts %}<script>
+  var
+    mkd = '{{ user.mkd }}' != '',
+    egrul = '{{ user.egrul }}' != '';
+  const
+    formSubmitButton = $('#form_submit_button');
+
+  $(document).ready(() => {
+    formSubmitButton.prop('disabled', true)
+
+    $('#id_mkd').change(function() {
+      mkd = $(this).val() != ''
+      formSubmitButton.prop('disabled', !(mkd && egrul))
+    })
+  
+    $('#id_egrul').change(function() {
+      egrul = $(this).val() != ''
+      formSubmitButton.prop('disabled', !(mkd && egrul))
+    })
+  })
+</script>{% endblock %}

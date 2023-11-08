@@ -8,23 +8,20 @@ from django.views.generic.list import ListView
 from django.views.generic import TemplateView
 from django.http import JsonResponse, HttpResponse
 from requests.exceptions import ConnectionError as RequestsConnectionError
+from requests import get as requests_get, post as requests_post
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.dispatch import receiver
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login # не трогать
-from django.shortcuts import render, redirect
-from django.shortcuts import get_object_or_404
-from requests import get as requests_get
 from transliterate import slugify
 from django.urls import reverse_lazy
 from django.conf import settings
+from django.db.models.signals import post_save
 
 from user.forms import CustomAuthenticationForm, CustomUserDocumentsForm
-from .models import (
-    Case,
-    receipt as receipt_request,
-    statement as statement_request
-)
-from .forms import NewCaseForm
+from .models import Case
+from .forms import NewCaseForm, CaseDetailForm
 
 
 def about(request):
@@ -79,13 +76,13 @@ def profile(request):
     })
 
 
-def file_ready(case_id: str, movements: str) -> bool:
+def file_ready(data, _settings) -> bool:
     try:
         response = requests_get(
             settings.API_URL_CHECK,
             json={
-                'case_id': str(case_id),
-                'movements': movements
+                'data': data,
+                'settings': _settings
             },
             headers={
                 'x-access-token': settings.API_ACCESS_TOKEN
@@ -94,21 +91,18 @@ def file_ready(case_id: str, movements: str) -> bool:
         if response.status_code == 200:
             return response.json().get('result')
         elif response.status_code == 404:
-            if movements == 'statement_magistrate':
-                statement_request(get_object_or_404(Case, pk=case_id))
-            elif movements == 'receipt':
-                receipt_request(get_object_or_404(Case, pk=case_id))
+            api(data, _settings)
     except RequestsConnectionError:
         return False
 
 
-def file_download(case_id: str, movements: str) -> bytes:
+def file_download(data, _settings) -> bytes:
     try:
         response = requests_get(
             settings.API_URL_DOCUMENT,
             json={
-                'case_id': str(case_id),
-                'movements': movements
+                'data': data,
+                'settings': _settings
             },
             headers={
                 'x-access-token': settings.API_ACCESS_TOKEN
@@ -125,32 +119,20 @@ def case_detail(request, pk: str):
     case = get_object_or_404(Case, pk=pk, user=request.user)
 
     if request.method == 'POST':
-        form = NewCaseForm(request.POST, request.FILES, instance=case)
+        form = CaseDetailForm(request.POST, request.FILES, instance=case)
         if form.is_valid():
             case = form.save()
     else:
-        form = NewCaseForm(instance=case)
+        form = CaseDetailForm(instance=case)
 
     context = {
         'case': case,
         'form': form,
+        'statement': file_ready(*case.statement_data),
+        'receipt': file_ready(*case.receipt_data)
     }
-    
-    try:
-        context.update({
-            'statement': file_ready(pk, 'statement_magistrate'),
-            'receipt': file_ready(pk, 'receipt')
-        })
-    except RequestsConnectionError:
-        ...
 
     return render(request, 'main/case.html', context)
-
-
-class CaseListView(ListView):
-    model = Case
-    template_name = 'main/cases.html'
-    context_object_name = 'cases'
 
 
 @login_required
@@ -161,7 +143,11 @@ def new_case(request):
             case: Case = form.save(commit=False)
             case.user = request.user
             case.save()
-            return redirect('main:case', case.id)
+            print(case)
+            # if case:
+            #     return redirect('main:case', case.id)
+            # else:
+            return redirect('main:profile')
     else:
         form = NewCaseForm()
 
@@ -181,30 +167,39 @@ class IndexView(FormView):
 
 @login_required
 def check_receipt(request, pk: str):
-    return JsonResponse({'success': file_ready(pk, 'receipt')})
+    case = get_object_or_404(Case, pk=pk, user=request.user)
+    return JsonResponse({'success': file_ready(*case.receipt_data)})
 
 
 @login_required
 def check_statement(request, pk: str):
-    return JsonResponse({'success': file_ready(pk, 'statement_magistrate')})
+    case = get_object_or_404(Case, pk=pk, user=request.user)
+    return JsonResponse({'success': file_ready(*case.statement_data)})
+
+
+@login_required
+def check_upload(request, pk: str):
+    return JsonResponse({'success': upload_ready(pk, request.user)})
+
+
+def upload_ready(pk: str, user) -> bool:
+    case = get_object_or_404(Case, pk=pk, user=user)
+    return bool(
+        case.debt_statement and
+        case.egrn and
+        case.user.mkd and
+        case.user.egrul and
+        file_ready(*case.statement_data) and
+        file_ready(*case.receipt_data)
+    )
 
 
 @login_required
 def create_document_pack(request, pk: str):
     case = get_object_or_404(Case, pk=pk, user=request.user)
 
-    try:
-        if not (
-            case.debt_statement and
-            case.egrn and
-            case.user.mkd and
-            case.user.egrul and
-            file_ready(pk, 'statement_magistrate') and
-            file_ready(pk, 'receipt')
-        ):
-            return JsonResponse({'message': 'Some files are not ready'})
-    except RequestsConnectionError:
-        return JsonResponse({'message': 'Server is not pending'})
+    if not upload_ready(pk, request.user):
+        return JsonResponse({'message': 'Some files are not ready'})
 
     zip_buffer = BytesIO()
 
@@ -215,11 +210,11 @@ def create_document_pack(request, pk: str):
         zip_file.write(case.user.egrul.path, 'Выписка из ЕГРЮЛ.pdf')
         zip_file.writestr(
             'Квитанция об уплате госпошлины.pdf',
-            file_download(pk, 'receipt')
+            file_download(*case.receipt_data)
         )
         zip_file.writestr(
             'Заявление.docx',
-            file_download(pk, 'statement_magistrate')
+            file_download(*case.statement_data)
         )
 
     zip_buffer.seek(0)
@@ -243,3 +238,49 @@ def delete_case(request, pk):
 
     case.delete()
     return redirect('main:profile')
+
+
+def api(data, _settings):
+    try:
+        response = requests_post(
+            settings.API_URL_DOCUMENT,
+            json={
+                'data': data,
+                'settings': _settings
+            },
+            headers={
+                'x-access-token': settings.API_ACCESS_TOKEN
+            }
+        )
+        if response.status_code == 200:
+            ...
+    except RequestsConnectionError as rce:
+        print(f'''
+            [Error] Failed to fetch data.
+            : {rce}
+        ''')
+
+
+@receiver(post_save, sender=Case)
+def create_case_files(sender, instance: Case, **kwargs):
+    if not instance.debt_statement:
+        return
+
+    receipt_data = instance.receipt_data
+    statement_data = instance.statement_data
+
+    for case in Case.objects.exclude(id=instance.id):
+        if (
+            case.receipt_data == receipt_data and
+            case.statement_data == statement_data and
+            case.user == instance.user
+        ):
+            if instance.debt_statement and os_path_exists(instance.debt_statement.path):
+                os_remove(instance.debt_statement.path)
+            if instance.egrn and os_path_exists(instance.egrn.path):
+                os_remove(instance.egrn.path)
+            instance.delete()
+            return
+
+    api(*receipt_data)
+    api(*statement_data)

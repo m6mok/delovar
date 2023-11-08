@@ -149,7 +149,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.is_active
 
     def __str__(self):
-        return ', '.join(field for field in (str(self.inn), self.label) if field)
+        return ', '.join(field for field in (
+            str(self.inn),
+            self.label
+        ) if field)
 
     class Meta:
         verbose_name = 'Пользователь'

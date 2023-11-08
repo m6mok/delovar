@@ -14,17 +14,33 @@ class LoginForm(forms.Form):
     password = forms.CharField(label='Пароль', widget=forms.PasswordInput)
 
 
-class CaseForm(forms.ModelForm):
+class NewCaseForm(forms.ModelForm):
     class Meta:
         model = Case
-        fields = [
-            'user',
-            'debt_statement',
-            'egrn'
-        ]
+        fields = ['template', 'debt_statement', 'egrn']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user', None)
+        
+        super().__init__(*args, **kwargs)
+        for name in ('template', 'debt_statement', 'egrn'):
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control'
+            })
+
+        if user:
+            self.instance.user = user
+
+        self.fields['template'].required = True
+
+        self.fields['debt_statement'].validators.append(FileExtensionValidator(['pdf']))
+        self.fields['debt_statement'].required = True
+
+        self.fields['egrn'].validators.append(FileExtensionValidator(['pdf']))
+        self.fields['egrn'].required = False
 
 
-class NewCaseForm(forms.ModelForm):
+class CaseDetailForm(forms.ModelForm):
     class Meta:
         model = Case
         fields = ['debt_statement', 'egrn']
@@ -46,4 +62,3 @@ class NewCaseForm(forms.ModelForm):
 
         self.fields['egrn'].validators.append(FileExtensionValidator(['pdf']))
         self.fields['egrn'].required = False
-
