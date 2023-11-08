@@ -16,7 +16,7 @@ from django.conf import settings
 
 def file_path(instance, filename):
     os_makedirs(settings.FILES_NAME, exist_ok=True)
-    return settings.FILES_NAME / uuid4().hex
+    return 'files/' + uuid4().hex
 
 
 class CustomUserManager(BaseUserManager):

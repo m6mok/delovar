@@ -94,7 +94,7 @@ def file_ready(case_id: str, movements: str) -> bool:
         if response.status_code == 200:
             return response.json().get('result')
         elif response.status_code == 404:
-            if movements == 'statement':
+            if movements == 'statement_magistrate':
                 statement_request(get_object_or_404(Case, pk=case_id))
             elif movements == 'receipt':
                 receipt_request(get_object_or_404(Case, pk=case_id))

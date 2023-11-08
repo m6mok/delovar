@@ -3,9 +3,7 @@
     <a href="{% url 'main:index' %}" class="d-flex align-items-center mb-3 mb-lg-0 me-3 text-dark text-decoration-none">
       {% if user.is_authenticated and user.is_staff %}
         <div class="p-1 px-3 mt-3 d-flex align-items-center">
-          {% with svg_width='3rem' svg_height='3rem' svg_color='#7851A9' %}
-            {% include 'svg/crown.svg' %}
-          {% endwith %}
+            {% include 'svg/crown.svg' with svg_width='3rem' svg_height='3rem' svg_color='#7851A9' %}
           <logotitle class="ms-2">Деловар</logotitle>
         </div>
       {% else %}

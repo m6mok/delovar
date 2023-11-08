@@ -20,7 +20,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
-    'user.apps.UserConfig'
+    'user.apps.UserConfig',
+    'core.apps.CoreConfig'
 ]
 
 MIDDLEWARE = [
@@ -113,7 +114,8 @@ FILES_NAME = MEDIA_ROOT / 'files'
 
 
 API_ACCESS_TOKEN = 'bw2dnkohQJp3ib-GoefPi9/deczuxPPYDrIb85g0uxmpy7al4odokpvHi63OAoWkGCGKbzjp/Gm=BlheX7Y2eruwLOftp4QrMpvsfLfF7l7dJ9GWCLNZBlFi=uHaeFQqHsrgG6nEA8u85E6gKGr7hEswfmWhdGO=Ct!hgm/g1-ANK!v0XCu/TpimRo=S54YFjWaum5?586BHd9T/OhvV3Tym01Ln5HhSmAQjRMYlBdjy=Fo1FHIyFqNEhJlD39xw'
-API_URL = 'http://195.140.146.223:5000/api/v1/'
+# API_URL = 'http://195.140.146.223:5000/api/v1/'
+API_URL = 'http://127.0.0.2:5000/api/v1/'
 API_URL_DOCUMENT = API_URL + 'document/'
 API_URL_CHECK = API_URL + 'check/'
 

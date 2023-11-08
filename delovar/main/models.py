@@ -25,7 +25,7 @@ from cached_property import cached_property
 
 def file_path(instance, filename):
     os_makedirs(settings.FILES_NAME, exist_ok=True)
-    return 'delovar/midia/files' + uuid4().hex
+    return 'files/' + uuid4().hex
 
 
 class Session:
@@ -149,6 +149,7 @@ def api():
                 ''')
         return wrapper
     return decorator
+
 
 @receiver(post_save, sender=Case)
 def create_case_files(sender, instance, **kwargs):

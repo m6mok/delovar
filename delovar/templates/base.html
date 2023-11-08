@@ -28,13 +28,13 @@
       font-family: 'Fjord', sans-serif;
     }
     h1, h2, h3, h4, h5, p, label {
-      text-shadow: 1px 1px 1px #000;
+      text-shadow: 1px 1px 1px black;
       color: white;
     }
     logotitle {
       font: 36px "Impact, fantasy";
       color: #7851A9;
-      text-shadow: 0 1px 0 #000;
+      text-shadow: 0 1px 0 black;
     }
     .btn-primary {
       --bs-btn-color: #fff;
@@ -78,6 +78,10 @@
   .border-primary {
     --bs-border-opacity: 1;
     border-color: rgba(var(--bs-primary-rgb),var(--bs-border-opacity))!important
+  }
+  #svg_crown {
+    -webkit-filter: drop-shadow( 0 1px 0 black);
+    filter: drop-shadow( 0 1px 0 black);
   }
 
   </style>

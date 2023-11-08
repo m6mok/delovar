@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load user_filters %}
 
 {% block title %}
   Дело {{ case.pk }}
@@ -32,13 +33,13 @@
         <div class="row row-cols-1 row-cols-lg-2">
           <div class="col row align-items-center justify-content-end">
             <div class="col"><strong>Пользователь</strong></div>
-            <div class="col-8 text-end"><a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">{{ case.user }}</a></div>
+            <div class="col-12 col-lg text-end"><a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">{{ case.user }}</a></div>
           </div>
           <div class="col row align-items-center justify-content-end">
             <div class="col"><strong>Создано</strong></div>
-            <div class="col-8 text-end">{{ case.created_at }}</div>
+            <div class="col-12 col-lg text-end">{{ case.created_at|date:"d.m.Y H:i" }}</div>
           </div>
-          <div class="col row align-items-center">
+          <div class="col row align-items-end">
             <div class="col"><strong>Квитанция об уплате госпошлины</strong></div>
             <div class="col-1 text-end">
               <a id="btn-receipt" class="h5 text-black text-decoration-none" href="#">
@@ -46,7 +47,7 @@
               </a>
             </div>
           </div>
-          <div class="col row align-items-center">
+          <div class="col row align-items-end">
             <div class="col"><strong>Заявление</strong></div>
             <div class="col-1 text-end">
               <a id="btn-statement" class="h5 text-black text-decoration-none" href="#">
@@ -54,7 +55,7 @@
               </a>
             </div>
           </div>
-          <div class="col row align-items-center">
+          <div class="col row align-items-end">
             <div class="col"><strong>Договор управления МКД</strong></div>
             <div class="col-1 text-end">
               <a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">
@@ -62,7 +63,7 @@
               </a>
             </div>
           </div>
-          <div class="col row align-items-center">
+          <div class="col row align-items-end">
             <div class="col"><strong>Выписка из ЕГРЮЛ</strong></div>
             <div class="col-1 text-end">
               <a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">
@@ -70,27 +71,41 @@
               </a>
             </div>
           </div>
-          <div class="col row">
-            <div class="col-12">
+          <div class="col row align-items-top">
+            <div class="col">
               <strong>Расчеты по задолженности</strong>
+            </div>
+            {% if case.debt_statement %}<div class="col col-lg-3 text-end">
+              <a href="#" onclick="$('#form_debt_statement').prop('hidden', false); $(this).prop('hidden', true)">
+                изменить
+              </a>
+            </div>{% endif %}
+            <div class="col-1 text-end">
               <a class="h5 text-black text-decoration-none">
                 {% if case.debt_statement %}✅{% else %}❌{% endif %}
               </a>
             </div>
-            {% if not case.debt_statement %}<div class="col-12 p-1">
-              {{ form.debt_statement }}
-            </div>{% endif %}
+            <div id="form_debt_statement" class="col-12 p-1"{% if case.debt_statement %} hidden{% endif %}>
+              <input type="file" name="debt_statement" class="form-control" id="id_debt_statement">
+            </div>
           </div>
-          <div class="col row">
-            <div class="col-12">
+          <div class="col row align-items-top">
+            <div class="col">
               <strong>Выписки из ЕГРН</strong>
+            </div>
+            {% if case.egrn %}<div class="col col-lg-3 text-end">
+              <a href="#" onclick="$('#form_egrn').prop('hidden', false); $(this).prop('hidden', true)">
+                изменить
+              </a>
+            </div>{% endif %}
+            <div class="col-1 text-end">
               <a class="h5 text-black text-decoration-none">
                 {% if case.egrn %}✅{% else %}❌{% endif %}
               </a>
             </div>
-            {% if not case.egrn %}<div class="col-12 p-1">
-              {{ form.egrn }}
-            </div>{% endif %}
+            <div id="form_egrn" class="col-12 p-1"{% if case.egrn %} hidden{% endif %}>
+              <input type="file" name="egrn" class="form-control" id="id_egrn">
+            </div>
           </div>
         </div>
       </form>
