@@ -1,34 +1,31 @@
-<header class="border-bottom py-1 py-lg-3 color-y">
-  <div class="d-flex align-items-center container">
-    <a href="{% url 'main:index' %}" class="d-flex align-items-center mb-3 mb-lg-0 me-3 text-dark text-decoration-none">
-      {% if user.is_authenticated and user.is_staff %}
-        <div class="p-1 px-3 mt-3 d-flex align-items-center">
-            {% include 'svg/crown.svg' with svg_width='3rem' svg_height='3rem' svg_color='#7851A9' %}
-          <logotitle class="ms-2">Деловар</logotitle>
+<header class="d-flex justify-content-center border-bottom color-y">
+  <div class="row container p-3">
+    <div class="col">
+      <a href="{% url 'main:index' %}" class="d-flex text-decoration-none">
+        {% if user.is_authenticated and user.is_staff %}<div>
+          {% include 'svg/crown.svg' with svg_width='2.5rem' svg_height='2.5rem' svg_color='#7851A9' %}
+        </div>{% else %}
+        <div>
+            {% include 'svg/logo.svg' with svg_width='3rem' svg_height='3rem' %}
         </div>
-      {% else %}
-        {% with svg_width='3rem' svg_height='3rem' %}
-          {% include 'svg/logo.svg' %}
-        {% endwith %}
-        <logotitle class="ms-2 my-3">Деловар</logotitle>
-      {% endif %}
-    </a>
-    <div class="col m-0 me-lg-2 mb-2 text-center text-md-end">
-      {% if user.is_authenticated %}
-        <div class="btn-group">
-          <div class="btn btn-primary text-white">
-            <a href="{% url 'main:profile' %}" class="nav-link">
-              Профиль
-            </a>
-          </div>
-          <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item text-danger" href="{% url 'user:logout' %}">Выйти</a></li>
-          </ul>
-        </div>
-      {% else %}
-        <a href="{% url 'main:index' %}#sign-in" class="btn btn-outline-primary">Войти</a>
-      {% endif %}
+        {% endif %}<div><logotitle>Деловар</logotitle></div>
+      </a>
     </div>
+    <div class="col text-end">{% if user.is_authenticated %}
+      <div class="btn-group mt-1">
+        <div class="btn btn-primary text-white">
+          <a href="{% url 'main:profile' %}" class="nav-link">
+            Профиль
+          </a>
+        </div>
+        <button type="button" class="btn btn-danger dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false"></button>
+        <ul class="dropdown-menu">
+          <li><a class="dropdown-item text-danger" href="{% url 'user:logout' %}">Выйти</a></li>
+        </ul>
+      </div>{% else %}
+      <div class="btn btn-outline-primary mt-1">
+        <a class="dropdown-item" href="{% url 'main:index' %}#sign-in">Войти</a>
+      </div>
+    {% endif %}</div>
   </div>
 </header>

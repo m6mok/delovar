@@ -5,8 +5,8 @@
   Дело
 {% endblock %}
 
-{% block body %}<div class="container p-3">
-  <div class="card m-5 color-y">
+{% block body %}<div class="container p-3 px-lg-5">
+  <div class="card m-1 m-md-3 m-lg-5 color-y">
     <div class="card-header">
       <div class="row align-items-center">
         <div class="col-12 col-sm-5 col-md mb-3 mb-sm-0">
@@ -137,10 +137,6 @@
   <div class="modal" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content color-main">
-        <!-- <div class="modal-header color-y">
-          <h5 class="modal-title m-0" id="deleteModalLabel">Подтверждение удаления</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div> -->
         <div class="modal-body text-white">
           <p class="my-3">Вы уверены, что хотите удалить Дело?</p>
           <div class="text-end">
@@ -248,7 +244,6 @@
     
     function updateUpload() {
       sendPostRequest("{% url 'main:check_upload' case.id %}", function(response) {
-        console.log(response.success)
         updateTemplates(response.success.templates)
         refreshButton.prop('hidden', response.success.message !== 'failed')
         uploadButton.prop('disabled', response.success.message !== 'ready');
