@@ -8,7 +8,13 @@
 {% block body %}<div class="container p-3">
   <div class="card m-5 color-y">
     <div class="card-header">
-      <h3 class="m-0">Дело</h3><span class="muted text-end">{{ case }}</span>
+      <h3 class="m-0">Дело</h3>
+      <span class="muted text-end">{{ case }}</span>
+      <div class="text-end">
+        <button class="btn" id="refresh_button" hidden>
+          {% include 'svg/refresh.svg' with width='2rem' height='2rem' color='#7851A9' %}
+        </button>
+      </div>
     </div>
     <div class="card-body">
       <form method="post" id="form" enctype="multipart/form-data">
@@ -42,16 +48,14 @@
           <div class="col row align-items-end">
             <div class="col"><strong>Квитанция об уплате госпошлины</strong></div>
             <div class="col-1 text-end">
-              <a id="receipt_button" class="h5 text-black text-decoration-none" href="#">
-                {% if receipt %}✅{% else %}⏳{% endif %}
+              <a id="receipt_button" class="h5 text-black text-decoration-none">
               </a>
             </div>
           </div>
           <div class="col row align-items-end">
             <div class="col"><strong>Заявление</strong></div>
             <div class="col-1 text-end">
-              <a id="statement_button" class="h5 text-black text-decoration-none" href="#">
-                {% if statement %}✅{% else %}⏳{% endif %}
+              <a id="statement_button" class="h5 text-black text-decoration-none">
               </a>
             </div>
           </div>
@@ -151,7 +155,8 @@
     statementButton = $('#statement_button'),
     formSubmitButton = $('#form_submit_button'),
     confirmDeleteButton = $('#confirm_delete_button'),
-    uploadButton = $('#upload_button');
+    uploadButton = $('#upload_button'),
+    refreshButton = $('#refresh_button');
 
   $(document).ready(() => {
     formSubmitButton.prop('disabled', true)
@@ -167,8 +172,12 @@
       formSubmitButton.prop('disabled', !(debtStatement && egrn))
     })
 
-    receiptButton.click(updateReceipt)
-    statementButton.click(updateStatement)
+    // receiptButton.click(updateReceipt)
+    // statementButton.click(updateStatement)
+    refreshButton.click(() => {
+      refreshButton.prop('hidden', true)
+      refreshRequest()
+    })
 
     function sendPostRequest(url, callback) {
       $.ajax({
@@ -184,10 +193,19 @@
     function updateReceipt() {
       // receiptButton.text('❓️');
       sendPostRequest("{% url 'main:check_receipt' case.id %}", function(response) {
-        if (response.success) {
-          receiptButton.text('✅');
-        } else {
-          receiptButton.text('⏳');
+        switch (response.success) {
+          case 'ready':
+            receiptButton.text('✅');
+            break
+          case 'wait':
+            receiptButton.text('⏳');
+            break
+          case 'failed':
+            receiptButton.text('❌');
+            break
+          case 'lost_connection':
+            receiptButton.text('🌐');
+            break
         }
       })
     }
@@ -195,18 +213,36 @@
     function updateStatement() {
       // statementButton.text('❓️');
       sendPostRequest("{% url 'main:check_statement' case.id %}", function(response) {
-        if (response.success) {
-          statementButton.text('✅')
-        } else {
-          statementButton.text('⏳')
+        switch (response.success) {
+          case 'ready':
+            statementButton.text('✅');
+            break
+          case 'wait':
+            statementButton.text('⏳');
+            break
+          case 'failed':
+            statementButton.text('❌');
+            break
+          case 'lost_connection':
+            statementButton.text('🌐');
+            break
         }
+      })
+    }
+
+    function refreshRequest() {
+      sendPostRequest("{% url 'main:refresh_request' case.id %}", function(response) {
+        refreshButton.prop('hidden', true)
+        uploadButton.prop('disabled', response.success !== 'ready');
       })
     }
     
     function updateUpload() {
       // uploadButton.prop('disabled', true);
       sendPostRequest("{% url 'main:check_upload' case.id %}", function(response) {
-        uploadButton.prop('disabled', !response.success);
+        console.log(response)
+        refreshButton.prop('hidden', response.success !== 'failed')
+        uploadButton.prop('disabled', response.success !== 'ready');
       });
     }
 

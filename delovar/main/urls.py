@@ -17,6 +17,7 @@ urlpatterns = [
     path('cases/case/<str:pk>/check_receipt/', views.check_receipt, name='check_receipt'),
     path('cases/case/<str:pk>/check_statement/', views.check_statement, name='check_statement'),
     path('cases/case/<str:pk>/check_upload/', views.check_upload, name='check_upload'),
+    path('cases/case/<str:pk>/refresh_request/', views.refresh_request, name='refresh_request'),
     path('cases/case/<str:pk>/document_pack/', views.create_document_pack, name='create_document_pack'),
     path('', views.IndexView.as_view(), name='index')
 ]

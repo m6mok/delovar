@@ -150,8 +150,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return ', '.join(field for field in (
-            str(self.inn),
-            self.label
+            self.label,
         ) if field)
 
     class Meta:

@@ -49,8 +49,8 @@ class Case(Model):
 
     TEMPLATE_CHOICES = (
         ('statement_magistrate', 'Приказ мировой суд'),
-        ('statement_district', 'Приказ районный суд'),
-        ('statement_lowsuit_district', 'Иск районный суд'),
+        ('lawsuit_district', 'Иск районный суд'),
+        ('lawsuit_magistrate', 'Иск мировой суд'),
     )
     template = CharField(
         max_length=50,
@@ -70,7 +70,7 @@ class Case(Model):
             field for field in (
                 self.get_template_display(),
                 shorted_name(data.get('name')),
-                data.get('period')
+                # data.get('period')
             )
             if field
         )
@@ -114,38 +114,22 @@ class Case(Model):
         }
 
     @cached_property
-    def receipt_data(self):
+    def data(self) -> dict:
         data = self.get_user_data()
         data.update(self.debt_statement_data)
-        amount = self.amount
-
-        _settings: dict = settings.API_DEFAULT_SETTINGS
-
-        if amount > 500000:
-            _settings.update(settings.API_MOVEMENTS_RECEIPT_DISTRICT)
-        elif amount > 50000:
-            _settings.update(settings.API_MOVEMENTS_RECEIPT_DISTRICT)
-        else:
-            _settings.update(settings.API_MOVEMENTS_RECEIPT_MAGISTRATE)
-
-        return data, _settings
+        data.update({'movements': list(self.get_template)})
+        return data
 
     @cached_property
-    def statement_data(self):
-        data = self.get_user_data()
-        data.update(self.debt_statement_data)
+    def get_template(self):
         amount = self.amount
 
-        _settings: dict = settings.API_DEFAULT_SETTINGS
-
         if amount > 500000:
-            _settings.update(settings.API_MOVEMENTS_STATEMENT_LOWSUIT_DISTRICT)
+            return 'lawsuit_district', 'receipt_district'
         elif amount > 50000:
-            _settings.update(settings.API_MOVEMENTS_STATEMENT_DISTRICT)
+            return 'lawsuit_magistrate', 'receipt_magistrate'
         else:
-            _settings.update(settings.API_MOVEMENTS_STATEMENT_MAGISTRATE)
-
-        return data, _settings
+            return 'statement_magistrate', 'receipt_magistrate'
 
     @cached_property
     def get_egrn_data(self) -> dict:
