@@ -10,9 +10,9 @@
 
 {% block body %}<div class="container-lg color-mid">
   <div class="px-4 py-5 text-center text-white">
-    <h3 class="display-4 fw-bold">Быстрые и бесплатные<br>юридические документы</h3>
+    <h3 class="display-4 fw-bold">Быстрые и качественные<br>юридические документы</h3>
     <div class="col-lg-6 mx-auto">
-      <p class="lead mb-4">Мы предлагаем услугу роботизированной юридической помощи. Если Вам нужно составить документ, и Вы хотите сделать это быстро и бесплатно, то наша программа Вас выручит!</p>
+      <p class="lead mb-4">Мы предлагаем услугу роботизированной юридической помощи. В итоге Вы получаете полный пакет документов для передачи их в суд.</p>
       <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
         {% if user.is_authenticated %}
           <a href="{% url 'main:profile' %}" class="btn btn-primary btn-lg px-4 me-sm-3">Начать работу</a>
@@ -62,7 +62,7 @@
   <div id="sign-in" class="container col-xl-10 col-xxl-8 px-4 pb-5 text-white">
     <div class="row align-items-center g-lg-5 py-5">
       <div class="col-lg-7 mb-3 text-center text-lg-start">
-        <h3 class="display-4 fw-bold lh-1 mb-3">Начните работу с документами прямо сейчас!</h3>
+        <h3 class="display-4 fw-bold lh-1 mb-3">Начните работу<br>с делами<br>прямо сейчас!</h3>
         <p class="col-lg-10 fs-4">Если Вы уже являетесь партнёром нашей фирмы, то, войдя под своим ИНН и личным паролем, Вы сразу перейдёте на страницу создания документов.</p>
         <small class="col-lg-10">В ином случае, Вы можете оставить заявку на партнёрство <a href="{% url 'main:about' %}" class="text-decoration-none">здесь</a>.</small>
       </div>

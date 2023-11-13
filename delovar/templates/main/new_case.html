@@ -5,37 +5,63 @@
 {% endblock %}
 
 {% block body %}<div class="container p-3">
-  <h3 class="text-white">Новое Дело</h3>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {% for error in form.non_field_errors %}
-      <div class="bg-danger p-3 mb-3 text-white rounded-3">
-        {{ error }}
-      </div>
-    {% endfor %}
-    {% if error_message %}
-      <div class="bg-warning p-3 mb-3 text-white rounded-3">
-        {{ error_message }}
-      </div>
-    {% endif %}
-    {% for field in form %}
-      {% for error in field.errors %}
-        <div class="bg-danger p-3 mb-3 text-white rounded-3">
-          <strong>{{ field.label }}</strong>: {{ error }}
-        </div>
-      {% endfor %}
-    {% endfor %}
-    {{ form.as_p }}
-    <div id="debt_data_container">
-
+  <div class="card m-5 color-y">
+    <div class="card-header">
+      <h3 class="my-1 my-sm-3 text-white">Новое Дело</h3>
     </div>
-    <button type="submit" class="btn btn-success">Создать Дело</button>
-  </form>
+    <div class="card-body">
+      <form id="form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {% for error in form.non_field_errors %}
+          <div class="bg-danger p-3 mb-3 text-white rounded-3">
+            {{ error }}
+          </div>
+        {% endfor %}
+        {% if error_message %}
+          <div class="bg-warning p-3 mb-3 text-white rounded-3">
+            {{ error_message }}
+          </div>
+        {% endif %}
+        {% for field in form %}
+          {% for error in field.errors %}
+            <div class="bg-danger p-3 mb-3 text-white rounded-3">
+              <strong>{{ field.label }}</strong>: {{ error }}
+            </div>
+          {% endfor %}
+        {% endfor %}
+        <div class="mb-1 mb-sm-3">
+          <strong>Расчеты по задолженности</strong>
+          <input type="file" name="debt_statement" class="form-control" id="id_debt_statement" accept="application/pdf">
+        </div>
+        <div id="container_data" class="my-1" hidden>
+          <div id="editing_open" class="mt-2 pe-3 text-end">
+            <a onclick="$('#editing_open').prop('hidden', true); $('#editing_close').prop('hidden', false)" class="text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapse_data" aria-expanded="false" aria-controls="collapseUser">
+              {% include 'svg/show.svg' with width='2rem' height='2rem' color='#7851A9' %}
+            </a>
+          </div>
+          <div id="editing_close" class="mt-3 pe-3 text-end" hidden>
+            <button onclick="$('#editing_close').prop('hidden', true); $('#editing_open').prop('hidden', false)" type="button" class="btn-close" data-bs-toggle="collapse" data-bs-target="#collapse_data"></button>
+          </div>
+          <div id="collapse_data" class="collapse">
+            <div id="debt_data_container"></div>
+          </div>
+        </div>
+        <div>
+          <strong>Выписка из ЕГРН</strong>
+          <input type="file" name="egrn" class="form-control" id="id_egrn" accept="application/pdf">
+        </div>
+      </form>
+    </div>
+    <div class="card-footer text-end">
+      <button onclick="$('#form').submit()" class="btn btn-success my-1">Создать Дело</button>
+    </div>
+  </div>
 </div>{% endblock %}
 
 {% block scripts %}<script>
   const
     inputDebt = $('#id_debt_statement'),
+    containerData = $('#container_data'),
     debtDataContainer = $('#debt_data_container');
 
   inputDebt.change(() => {
@@ -55,18 +81,22 @@
         response.data.forEach(element => {
           debtDataContainer.append(
             $('<div>').append(
-              $('<strong>', {
+              $('<label>', {
                 class: '',
                 text: element[0]
               }),
-              $('<p>', {
-                text: element[1]
+              $('<textarea>', {
+                class: 'form-control',
+                text: element[1],
+                readonly: true
               })
             )
           )
         });
         // debtDataContainer.text(response.data);
       }
+    }).done(() => {
+      containerData.prop('hidden', false)
     });
   })
 </script>{% endblock %}

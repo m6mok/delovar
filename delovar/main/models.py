@@ -68,7 +68,7 @@ class Case(Model):
             return f'{surname} {name[0]}. {fathername[0]}.'
         return ' '.join(
             field for field in (
-                self.get_template_display(),
+                # self.get_template_display(),
                 shorted_name(data.get('name')),
                 # data.get('period')
             )

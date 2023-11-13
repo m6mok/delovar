@@ -8,12 +8,20 @@
 {% block body %}<div class="container p-3">
   <div class="card m-5 color-y">
     <div class="card-header">
-      <h3 class="m-0">Дело</h3>
-      <span class="muted text-end">{{ case }}</span>
-      <div class="text-end">
-        <button class="btn" id="refresh_button" hidden>
-          {% include 'svg/refresh.svg' with width='2rem' height='2rem' color='#7851A9' %}
-        </button>
+      <div class="row align-items-center">
+        <div class="col-12 col-sm-5 col-md mb-3 mb-sm-0">
+          <h3 class="m-0">Дело</h3>
+          <span class="muted text-end">{{ case.get_template_display }}</span>
+          <br>
+          <span class="muted text-end">{{ case }}</span>
+        </div>
+        <div class="col-12 col-sm-7 col-md text-end">
+          <button class="btn btn-warning" id="refresh_button" hidden>
+            <h5 class="m-0">
+              Обновить запрос {% include 'svg/refresh.svg' with width='1.5rem' height='1.5rem' color='#7851A9' %}
+            </h5>
+          </button>
+        </div>
       </div>
     </div>
     <div class="card-body">
@@ -37,49 +45,49 @@
           {% endfor %}
         {% endfor %}
         <div class="row row-cols-1 row-cols-lg-2">
-          <div class="col row align-items-center justify-content-end">
+          <div class="col row justify-content-end">
             <div class="col"><strong>Пользователь</strong></div>
-            <div class="col-12 col-lg text-end"><a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">{{ case.user }}</a></div>
+            <div class="col-12 col-sm text-end"><a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">{{ case.user }}</a></div>
           </div>
-          <div class="col row align-items-center justify-content-end">
+          <div class="col row justify-content-end">
             <div class="col"><strong>Создано</strong></div>
-            <div class="col-12 col-lg text-end">{{ case.created_at|date:"d.m.Y H:i" }}</div>
+            <div class="col-12 col-sm text-end">{{ case.created_at|date:"d.m.Y H:i" }}</div>
           </div>
-          <div class="col row align-items-end">
-            <div class="col"><strong>Квитанция об уплате госпошлины</strong></div>
+          <div class="col row justify-content-end">
+            <div class="col-12 col-sm pe-0"><strong>Квитанция об уплате госпошлины</strong></div>
             <div class="col-1 text-end">
               <a id="receipt_button" class="h5 text-black text-decoration-none">
               </a>
             </div>
           </div>
-          <div class="col row align-items-end">
-            <div class="col"><strong>Заявление</strong></div>
+          <div class="col row justify-content-end">
+            <div class="col col-sm pe-0"><strong>Заявление</strong></div>
             <div class="col-1 text-end">
               <a id="statement_button" class="h5 text-black text-decoration-none">
               </a>
             </div>
           </div>
-          <div class="col row align-items-end">
-            <div class="col"><strong>Договор управления МКД</strong></div>
+          <div class="col row justify-content-end">
+            <div class="col-12 col-sm pe-0"><strong>Договор управления МКД</strong></div>
             <div class="col-1 text-end">
               <a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">
                 {% if case.user.mkd %}✅{% else %}❌{% endif %}
               </a>
             </div>
           </div>
-          <div class="col row align-items-end">
-            <div class="col"><strong>Выписка из ЕГРЮЛ</strong></div>
+          <div class="col row justify-content-end">
+            <div class="col col-sm pe-0"><strong>Выписка из ЕГРЮЛ</strong></div>
             <div class="col-1 text-end">
               <a class="h5 text-black text-decoration-none" href="{% url 'main:profile' %}">
                 {% if case.user.egrul %}✅{% else %}❌{% endif %}
               </a>
             </div>
           </div>
-          <div class="col row align-items-top">
-            <div class="col">
+          <div class="col row justify-content-end">
+            <div class="col-12 col-sm">
               <strong>Расчеты по задолженности</strong>
             </div>
-            {% if case.debt_statement %}<div class="col col-lg-3 text-end">
+            {% if case.debt_statement %}<div class="col col-sm-3 col-lg-3 text-end">
               <a class="text-black" href="#" onclick="$('#form_debt_statement').prop('hidden', false); $(this).prop('hidden', true)">
                 изменить
               </a>
@@ -94,8 +102,8 @@
             </div>
           </div>
           <div class="col row align-items-top">
-            <div class="col">
-              <strong>Выписки из ЕГРН</strong>
+            <div class="col-12 col-sm">
+              <strong>Выписка из ЕГРН</strong>
             </div>
             {% if case.egrn %}<div class="col col-lg-3 text-end">
               <a class="text-black" href="#" onclick="$('#form_egrn').prop('hidden', false); $(this).prop('hidden', true)">
@@ -126,19 +134,19 @@
       </button>
     </div>
   </div>
-  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content color-y">
-        <div class="modal-header color-y">
-          <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+  <div class="modal" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content color-main">
+        <!-- <div class="modal-header color-y">
+          <h5 class="modal-title m-0" id="deleteModalLabel">Подтверждение удаления</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
+        </div> -->
         <div class="modal-body text-white">
-          Вы уверены, что хотите удалить Дело?
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-          <button type="button" class="btn btn-danger" id="confirm_delete_button">Удалить</button>
+          <p class="my-3">Вы уверены, что хотите удалить Дело?</p>
+          <div class="text-end">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+            <button type="button" class="btn btn-danger" id="confirm_delete_button">Удалить</button>
+          </div>
         </div>
       </div>
     </div>
@@ -150,6 +158,8 @@
   var
     debtStatement = '{{ case.debt_statement }}' != '',
     egrn = '{{ case.egrn }}' != '';
+    updatingBanRefresh = false,
+    updatingBanModal = false;
   const
     receiptButton = $('#receipt_button'),
     statementButton = $('#statement_button'),
@@ -172,12 +182,18 @@
       formSubmitButton.prop('disabled', !(debtStatement && egrn))
     })
 
-    // receiptButton.click(updateReceipt)
-    // statementButton.click(updateStatement)
     refreshButton.click(() => {
       refreshButton.prop('hidden', true)
       refreshRequest()
     })
+
+    $("#deleteModal").on("show.bs.modal", () => {
+        updatingBanModal = true;
+    });
+
+    $("#deleteModal").on("hidden.bs.modal", () => {
+        updatingBanModal = false;
+    });
 
     function sendPostRequest(url, callback) {
       $.ajax({
@@ -190,10 +206,8 @@
       });
     }
 
-    function updateReceipt() {
-      // receiptButton.text('❓️');
-      sendPostRequest("{% url 'main:check_receipt' case.id %}", function(response) {
-        switch (response.success) {
+    function updateTemplates(templates) {
+      switch (templates[1].message) {
           case 'ready':
             receiptButton.text('✅');
             break
@@ -207,13 +221,7 @@
             receiptButton.text('🌐');
             break
         }
-      })
-    }
-
-    function updateStatement() {
-      // statementButton.text('❓️');
-      sendPostRequest("{% url 'main:check_statement' case.id %}", function(response) {
-        switch (response.success) {
+        switch (templates[0].message) {
           case 'ready':
             statementButton.text('✅');
             break
@@ -227,33 +235,34 @@
             statementButton.text('🌐');
             break
         }
-      })
     }
 
     function refreshRequest() {
-      sendPostRequest("{% url 'main:refresh_request' case.id %}", function(response) {
+      updatingBanRefresh = true;
+      sendPostRequest("{% url 'main:refresh_request' case.id %}", (response) => {
         refreshButton.prop('hidden', true)
-        uploadButton.prop('disabled', response.success !== 'ready');
+        uploadButton.prop('disabled', response.success.message !== 'ready');
+        updatingBanRefresh = false;
       })
     }
     
     function updateUpload() {
-      // uploadButton.prop('disabled', true);
       sendPostRequest("{% url 'main:check_upload' case.id %}", function(response) {
-        console.log(response)
-        refreshButton.prop('hidden', response.success !== 'failed')
-        uploadButton.prop('disabled', response.success !== 'ready');
+        console.log(response.success)
+        updateTemplates(response.success.templates)
+        refreshButton.prop('hidden', response.success.message !== 'failed')
+        uploadButton.prop('disabled', response.success.message !== 'ready');
       });
     }
 
-    function updateAll() {
-      updateReceipt()
-      updateStatement()
-      updateUpload()
+    function updateInterval() {
+      if (!updatingBanModal && !updatingBanRefresh) {
+        updateUpload()
+      }
     }
 
-    updateAll()
-    setInterval(updateAll, 10000);
+    updateInterval()
+    setInterval(updateInterval, 10000);
 
     confirmDeleteButton.click(function() {
       window.location.href = "{% url 'main:delete_case' case.id %}";

@@ -163,7 +163,7 @@ def check_statement(request, pk: str):
 
 @login_required
 def check_upload(request, pk: str):
-    return JsonResponse({'success': upload_ready(pk, request.user)['message']})
+    return JsonResponse({'success': upload_ready(pk, request.user)})
 
 
 @login_required
@@ -190,7 +190,7 @@ def refresh_request(request, pk: str):
         date=data['date'],
         period=data['period'],
     )
-    return JsonResponse({'success': upload_ready(pk, request.user)['message']})
+    return JsonResponse({'success': upload_ready(pk, request.user)})
 
 
 def upload_ready(pk: str, user) -> bool:
@@ -198,10 +198,10 @@ def upload_ready(pk: str, user) -> bool:
     templates = [api_ready(str(case.user.id), str(case.id), template) for template in case.get_template]
     message = ''
     result = (
-        case.debt_statement and
-        case.egrn and
-        case.user.mkd and
-        case.user.egrul and
+        bool(case.debt_statement) and
+        bool(case.egrn) and
+        bool(case.user.mkd) and
+        bool(case.user.egrul) and
         all(template['result'] for template in templates)
     )
     if all(template['message'] == 'ready' for template in templates) and result:
@@ -212,9 +212,11 @@ def upload_ready(pk: str, user) -> bool:
         message = 'wait'
     elif all(template['message'] == 'lost_connection' for template in templates):
         message = 'lost_connection'
+    logging.info(templates)
     return {
         'result': result,
-        'message': message
+        'message': message,
+        'templates': templates
     }
 
 
@@ -246,7 +248,9 @@ def create_document_pack(request, pk: str):
 
     response = HttpResponse(zip_buffer.read(), content_type='application/zip')
     response['Content-Disposition'] = (
-        'fattachment; filename={name}.zip'.format(name=slugify(str(case), 'ru'))
+        'fattachment; filename={name}.zip'.format(
+            name=slugify(f'{case.get_template_display()}_{case}', 'ru')
+        )
     )
 
     return response
