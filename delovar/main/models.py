@@ -106,7 +106,7 @@ class Case(Model):
 
         return {
             'period': re_findall(r'за\s(?:(.*))\n', text)[0],
-            'org_inn': re_findall(r'ИНН\s(?:(.*))\n', text)[0],
+            # 'org_inn': re_findall(r'ИНН\s(?:(.*))\n', text)[0],
             'address': re_findall(r'Адрес:\s(?:(.*))\n', text)[0],
             'name': re_findall(r'Ответственный.*:(.*)\n', text)[0],
             'date': re_findall(r'Долг\sна\s([0-9.]*)\s', text)[0],

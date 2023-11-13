@@ -12,6 +12,7 @@ urlpatterns = [
     path('faq/', views.faq, name='faq'),
     path('profile/', views.profile, name='profile'),
     path('cases/new/', views.new_case, name='new_case'),
+    path('cases/get_debt_data/', views.get_debt_data, name='get_debt_data'),
     path('cases/case/<str:pk>/', views.case_detail, name='case'),
     path('cases/case/<str:pk>/delete/', views.delete_case, name='delete_case'),
     path('cases/case/<str:pk>/check_receipt/', views.check_receipt, name='check_receipt'),

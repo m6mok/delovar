@@ -4,10 +4,11 @@ from io import BytesIO
 from os.path import exists as os_path_exists
 from os import remove as os_remove
 import logging
+from re import findall as re_findall
 
 from django.views.generic.edit import FormView
-from django.views.generic.list import ListView
 from django.views.generic import TemplateView
+from django.core.files.base import ContentFile
 from django.http import JsonResponse, HttpResponse
 from requests.exceptions import ConnectionError as RequestsConnectionError
 from requests import get as requests_get, post as requests_post
@@ -20,6 +21,7 @@ from transliterate import slugify
 from django.urls import reverse_lazy
 from django.conf import settings
 from django.db.models.signals import post_save
+from PyPDF2 import PdfReader
 
 from user.forms import CustomAuthenticationForm, CustomUserDocumentsForm
 from .models import Case
@@ -399,3 +401,20 @@ def create_case_files(sender, instance: Case, **kwargs):
         date=data['date'],
         period=data['period'],
     )
+
+
+@login_required
+def get_debt_data(request):
+    text = ''
+    pdf_reader = PdfReader(ContentFile(request.FILES['pdf'].read()))
+    text += pdf_reader.pages[0].extract_text()
+    text += pdf_reader.pages[-1].extract_text()
+
+    return JsonResponse({'data': [
+        ('Период', re_findall(r'за\s(?:(.*))\n', text)[0]),
+        # 'org_inn': re_findall(r'ИНН\s(?:(.*))\n', text)[0],
+        ('Адрес', re_findall(r'Адрес:\s(?:(.*))\n', text)[0]),
+        ('Имя', re_findall(r'Ответственный.*:(.*)\n', text)[0]),
+        ('Дата', re_findall(r'Долг\sна\s([0-9.]*)\s', text)[0]),
+        ('Сумма', float(re_findall(r'составляет\s([0-9., ]*) руб.', text)[0].replace(' ', '').replace(',', '.')))
+    ]})

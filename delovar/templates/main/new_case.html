@@ -26,6 +26,47 @@
       {% endfor %}
     {% endfor %}
     {{ form.as_p }}
+    <div id="debt_data_container">
+
+    </div>
     <button type="submit" class="btn btn-success">Создать Дело</button>
   </form>
 </div>{% endblock %}
+
+{% block scripts %}<script>
+  const
+    inputDebt = $('#id_debt_statement'),
+    debtDataContainer = $('#debt_data_container');
+
+  inputDebt.change(() => {
+    let fd = new FormData;
+    fd.append('pdf', inputDebt.prop('files')[0])
+    $.ajax({
+      type: 'POST',
+      url: "{% url 'main:get_debt_data' %}",
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}'
+      },
+      data: fd,
+      processData: false,
+      contentType: false,
+      success: (response) => {
+        debtDataContainer.html('')
+        response.data.forEach(element => {
+          debtDataContainer.append(
+            $('<div>').append(
+              $('<strong>', {
+                class: '',
+                text: element[0]
+              }),
+              $('<p>', {
+                text: element[1]
+              })
+            )
+          )
+        });
+        // debtDataContainer.text(response.data);
+      }
+    });
+  })
+</script>{% endblock %}

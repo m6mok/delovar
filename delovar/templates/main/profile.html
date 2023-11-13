@@ -12,9 +12,18 @@
   <h3 class="text-white">Профиль пользователя</h3>
   <div class="card mx-lg-5 mb-3 color-y">
     <div class="card-header p-3">
-      <h3 class="m-0 p-0">Документы</h3>
+      <div class="row justify-content-between">
+        <div class="col">
+          <h3 class="m-0 p-0">ИНН {{ user.inn }}</h3>
+        </div>
+        <div class="col text-end">
+          <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUser" aria-expanded="false" aria-controls="collapseUser">
+            Редактировать данные
+          </button>
+        </div>
+      </div>
     </div>
-    <div class="card-body">
+    <div class="collapse card-body" id="collapseUser">
       <form method="post" id="form" enctype="multipart/form-data">
         {% csrf_token %}
         {% for error in form.non_field_errors %}
@@ -34,6 +43,18 @@
             </div>
           {% endfor %}
         {% endfor %}
+        <div class="mb-3">
+          <strong>{{ form.label.label }}</strong>
+          {{ form.label }}
+        </div>
+        <div class="mb-3">
+          <strong>{{ form.address.label }}</strong>
+          {{ form.address }}
+        </div>
+        <div class="mb-3">
+          <strong>{{ form.representative_person.label }}</strong>
+          {{ form.representative_person }}
+        </div>
         <div class="row row-cols-1 row-cols-lg-2">
           <div class="col row align-items-top">
             <div class="col">
@@ -135,6 +156,12 @@
 
 {% block scripts %}<script>
   var
+    label = '{{ user.label }}',
+    labelCorrect = true,
+    address = '{{ user.address }}',
+    addressCorrect = true,
+    representativePerson = '{{ user.representative_person }}',
+    representativePersonCorrect = true,
     mkd = '{{ user.mkd }}' != '',
     egrul = '{{ user.egrul }}' != '';
   const
@@ -143,14 +170,33 @@
   $(document).ready(() => {
     formSubmitButton.prop('disabled', true)
 
+    function all() {
+      return labelCorrect && addressCorrect && representativePersonCorrect && mkd && egrul
+    }
+
+    $('#id_label').change(function() {
+      labelCorrect = $(this).val() != label
+      formSubmitButton.prop('disabled', !all())
+    })
+
+    $('#id_address').change(function() {
+      addressCorrect = $(this).val() != address
+      formSubmitButton.prop('disabled', !all())
+    })
+
+    $('#id_representative_person').change(function() {
+      representativePersonCorrect = $(this).val() != representativePerson
+      formSubmitButton.prop('disabled', !all())
+    })
+
     $('#id_mkd').change(function() {
       mkd = $(this).val() != ''
-      formSubmitButton.prop('disabled', !(mkd && egrul))
+      formSubmitButton.prop('disabled', !all())
     })
   
     $('#id_egrul').change(function() {
       egrul = $(this).val() != ''
-      formSubmitButton.prop('disabled', !(mkd && egrul))
+      formSubmitButton.prop('disabled', !all())
     })
   })
 </script>{% endblock %}

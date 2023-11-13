@@ -21,6 +21,13 @@ USER_FIELDS = [
 ]
 
 
+INFO_FIELDS = [
+    'label',
+    'address',
+    'representative_person'
+]
+
+
 DOCUMENT_FIELDS = [
     'mkd',
     'egrul'
@@ -106,10 +113,14 @@ class CustomUserDocumentsForm(forms.ModelForm):
             })
             self.fields[name].validators.append(FileExtensionValidator(['pdf']))
             self.fields[name].required = False
+        for name in INFO_FIELDS:
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control'
+            })
 
     class Meta:
         model = CustomUser
-        fields = DOCUMENT_FIELDS
+        fields = INFO_FIELDS + DOCUMENT_FIELDS
 
 
 class PasswordResetForm(forms.Form):
