@@ -26,6 +26,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+.vscode
+project.env
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
@@ -161,3 +164,7 @@ cython_debug/
 
 media/
 Python-*/
+
+.log
+delovar/main/migrations
+delovar/user/migrations

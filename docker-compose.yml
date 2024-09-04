@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - ":3306"
+    command: -p ${DATABASE_PORT}
+    networks:
+      - backend
+    volumes: 
+      - db:/var/lib/postgresql/data/
+
+  web:
+    build: .
+    command: sh -c
+      "cd ${PROJECT_NAME} && \
+      python manage.py migrate && \
+      python manage.py collectstatic --noinput && \
+      uvicorn ${PROJECT_NAME}.asgi:application --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+    ports:
+      - "${WEBSITE_PORT}:8000"
+    networks:
+      - backend
+    depends_on:
+      - db
+      - redis
+    env_file: "project.env"
+    environment:
+      DATABASE_ENGINE: "django.db.backends.postgresql_psycopg2"
+      DATABASE_NAME: ${POSTGRES_DB}
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+
+volumes:
+  db:
+
+networks:
+  backend:

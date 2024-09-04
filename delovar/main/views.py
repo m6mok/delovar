@@ -95,12 +95,10 @@ def case_detail(request, pk: str):
         'case': case,
         'form': form,
         'statement': api_ready(
-            str(case.user.id),
             str(case.id),
             case.get_template[0]
         )['result'],
         'receipt': api_ready(
-            str(case.user.id),
             str(case.id),
             case.get_template[1]
         )['result']
@@ -142,7 +140,6 @@ def check_receipt(request, pk: str):
     case = get_object_or_404(Case, pk=pk, user=request.user)
     return JsonResponse({
         'success': api_ready(
-            str(case.user.id),
             str(case.id),
             case.get_template[1]
         )['message']
@@ -154,7 +151,6 @@ def check_statement(request, pk: str):
     case = get_object_or_404(Case, pk=pk, user=request.user)
     return JsonResponse({
         'success': api_ready(
-            str(case.user.id),
             str(case.id),
             case.get_template[0]
         )['message']
@@ -171,31 +167,28 @@ def refresh_request(request, pk: str):
     case = get_object_or_404(Case, pk=pk)
     data = case.data
     api_upload(
-        user_id=str(case.user.id),
         case_id=str(case.id),
         movements_list=data['movements'],
-        plaintiff={
-            'name': data['org_name'],
-            'inn': data['org_inn'],
-            'ogrn': data['org_ogrn'],
-            'kpp': data['org_kpp'],
-            'address': data['org_address'],
-            'representative': data['org_representative_person']
-        },
-        defendant={
-            'address': data['address'],
-            'representative': data['name'],
-        },
-        arrears=data['amount'],
-        date=data['date'],
-        period=data['period'],
+        data={
+            'plaintiff_name': data['org_name'],
+            'plaintiff_inn': data['org_inn'],
+            'plaintiff_ogrn': data['org_ogrn'],
+            'plaintiff_kpp': data['org_kpp'],
+            'plaintiff_address': data['org_address'],
+            'plaintiff_representative': data['org_representative_person'],
+            'defendant_address': data['address'],
+            'defendant_representative': data['name'],
+            'arrears': data['amount'],
+            'date': data['date'],
+            'period': data['period'],
+        }
     )
     return JsonResponse({'success': upload_ready(pk, request.user)})
 
 
 def upload_ready(pk: str, user) -> bool:
     case = get_object_or_404(Case, pk=pk, user=user)
-    templates = [api_ready(str(case.user.id), str(case.id), template) for template in case.get_template]
+    templates = [api_ready(str(case.id), template) for template in case.get_template]
     message = ''
     result = (
         bool(case.debt_statement) and
@@ -237,11 +230,11 @@ def create_document_pack(request, pk: str):
         zip_file.write(case.user.egrul.path, 'Выписка из ЕГРЮЛ.pdf')
         zip_file.writestr(
             'Квитанция об уплате госпошлины.pdf',
-            api_download(str(case.user.id), str(case.id), case.get_template[1])
+            api_download(str(case.id), case.get_template[1])
         )
         zip_file.writestr(
             'Заявление.docx',
-            api_download(str(case.user.id), str(case.id), case.get_template[0])
+            api_download(str(case.id), case.get_template[0])
         )
 
     zip_buffer.seek(0)
@@ -274,30 +267,18 @@ def delete_case(request, pk):
 
 
 def api_upload(
-    user_id: str,
     case_id: str,
     movements_list: List[str],
-    plaintiff: dict,
-    defendant: dict,
-    arrears: float,
-    date: str,
-    period: str
+    data: dict
 ):
     try:
         response = requests_post(
             settings.API_URL_UPLOAD,
             json={
-                'user_id': user_id,
                 'case_id': case_id,
                 'movements_list': movements_list,
-                'plaintiff': plaintiff,
-                'defendant': defendant,
-                'arrears': arrears,
-                'date': date,
-                'period': period,
-            },
-            headers={
-                'x-access-token': settings.API_ACCESS_TOKEN
+                'data': data,
+                'x_access_token': settings.API_ACCESS_TOKEN
             }
         )
         if response.status_code == 200:
@@ -309,17 +290,14 @@ def api_upload(
         ''')
 
 
-def api_download(user_id, case_id, movements) -> bytes:
+def api_download(case_id, movements) -> bytes:
     try:
         response = requests_get(
             settings.API_URL_DOWNLOAD,
             json={
-                'user_id': user_id,
                 'case_id': case_id,
-                'movements': movements
-            },
-            headers={
-                'x-access-token': settings.API_ACCESS_TOKEN
+                'movements': movements,
+                'x_access_token': settings.API_ACCESS_TOKEN
             }
         )
         if response.status_code == 200:
@@ -328,17 +306,14 @@ def api_download(user_id, case_id, movements) -> bytes:
         return None
 
 
-def api_ready(user_id, case_id, movements) -> dict:
+def api_ready(case_id, movements) -> dict:
     try:
         response = requests_get(
             settings.API_URL_CHECK,
             json={
-                'user_id': user_id,
                 'case_id': case_id,
-                'movements': movements
-            },
-            headers={
-                'x-access-token': settings.API_ACCESS_TOKEN
+                'movements': movements,
+                'x_access_token': settings.API_ACCESS_TOKEN
             }
         )
 
@@ -386,24 +361,21 @@ def create_case_files(sender, instance: Case, **kwargs):
             return
 
     api_upload(
-        user_id=str(instance.user.id),
         case_id=str(instance.id),
         movements_list=data['movements'],
-        plaintiff={
-            'name': data['org_name'],
-            'inn': data['org_inn'],
-            'ogrn': data['org_ogrn'],
-            'kpp': data['org_kpp'],
-            'address': data['org_address'],
-            'representative': data['org_representative_person']
-        },
-        defendant={
-            'address': data['address'],
-            'representative': data['name'],
-        },
-        arrears=data['amount'],
-        date=data['date'],
-        period=data['period'],
+        data={
+            'plaintiff_name': data['org_name'],
+            'plaintiff_inn': data['org_inn'],
+            'plaintiff_ogrn': data['org_ogrn'],
+            'plaintiff_kpp': data['org_kpp'],
+            'plaintiff_address': data['org_address'],
+            'plaintiff_representative': data['org_representative_person'],
+            'defendant_address': data['address'],
+            'defendant_representative': data['name'],
+            'arrears': data['amount'],
+            'date': data['date'],
+            'period': data['period'],
+        }
     )
 
 
